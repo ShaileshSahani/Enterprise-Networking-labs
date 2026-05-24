@@ -1,0 +1,91 @@
+Lab 03/50 — RSTP vs Legacy STP Convergence
+
+Today’s lab was simple:
+
+Break the network and measure how fast it recovers.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Built a redundant Layer 2 topology with:
+
+• 1 Distribution switch
+• 2 Access switches
+• Redundant uplinks
+• VLAN 10
+• Continuous traffic testing
+
+Then compared:
+
+• Legacy 802.1D STP
+VS
+• Rapid STP (RSTP)
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+First test:
+
+One switch running classic STP.
+
+Pulled the active uplink.
+
+Result:
+~30+ seconds of packet loss before traffic recovered.
+
+Watched the port move through:
+• Listening
+• Learning
+• Forwarding
+
+Exactly why legacy STP feels painfully slow in production.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Second test:
+
+Converted the topology to RSTP.
+
+Repeated the same link failure.
+
+Result:
+Traffic recovered almost immediately.
+
+Only a couple dropped pings during convergence.
+
+Huge difference.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Most people memorize:
+“RSTP is faster.”
+
+This lab shows:
+HOW much faster.
+
+And more importantly:
+What that actually looks like during a real failure.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the lab:
+• Full topology
+• Interface mapping
+• Complete configs
+• STP verification
+• Continuous ping testing
+• Failure simulation
+• Recovery comparison
+
+Everything documented.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #RSTP #STP #Networking #NetworkEngineer #Homelab #LearningInPublic
+

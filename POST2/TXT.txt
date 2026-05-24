@@ -1,0 +1,78 @@
+Lab 02/50 — PVST+ Per-VLAN Load Balancing
+
+Built a redundant Layer 2 campus topology with:
+
+• 2 Distribution switches
+• 3 Access switches
+• VLANs 10/20/30
+• Dual uplinks
+• PVST+
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+What I tested:
+
+• Natural STP root election
+• Manual root bridge manipulation
+• Different forwarding paths per VLAN
+• STP blocked-port movement
+• Link failure reconvergence
+
+Configured:
+• DSW1 as root for VLAN 10
+• DSW2 as root for VLAN 20
+
+Result:
+
+Different VLANs used different physical paths through the network.
+
+Exactly how real enterprise Layer 2 load balancing works.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Most tutorials explain STP like this:
+
+“STP prevents loops.”
+
+But the important part is:
+Which links actually forward traffic after convergence?
+
+That’s where this lab gets interesting.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Then I broke an uplink intentionally.
+
+Watched:
+• STP recalculate topology
+• Root ports change
+• Blocked ports transition
+• Traffic reroute automatically
+
+A few dropped pings during convergence.
+Then stable again.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the lab:
+• Full topology
+• Interface mapping
+• Complete configs
+• Verification commands
+• Failure testing
+• Recovery steps
+
+Everything documented.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #Networking #STP #PVST #NetworkEngineer #Homelab #LearningInPublic
+
