@@ -1,78 +1,79 @@
-Lab 02/50 — PVST+ Per-VLAN Load Balancing
+🔧 Lab 02/50 — PVST+ Per-VLAN Load Balancing
 
-Built a redundant Layer 2 campus topology with:
+Built a redundant Layer 2 campus topology using PVST+ to analyze per-VLAN traffic forwarding and STP convergence behavior.
 
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
 • 2 Distribution switches
 • 3 Access switches
-• VLANs 10/20/30
+• VLANs 10, 20, 30
 • Dual uplinks
-• PVST+
+• PVST+ enabled throughout the network
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-What I tested:
+Objectives:
+• Observe default STP elections
+• Manipulate Root Bridge placement
+• Validate per-VLAN forwarding paths
+• Analyze blocked-port behavior
+• Test reconvergence during link failure
 
-• Natural STP root election
-• Manual root bridge manipulation
-• Different forwarding paths per VLAN
-• STP blocked-port movement
-• Link failure reconvergence
+━━━━━━━━━━━━━━━━━━━━━━
 
-Configured:
-• DSW1 as root for VLAN 10
-• DSW2 as root for VLAN 20
+Configuration:
+• DSW1 configured as Root Primary for VLAN 10
+• DSW2 configured as Root Primary for VLAN 20
 
 Result:
+Different VLANs selected different forwarding paths through the topology.
 
-Different VLANs used different physical paths through the network.
-
-Exactly how real enterprise Layer 2 load balancing works.
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-Most tutorials explain STP like this:
-
-“STP prevents loops.”
-
-But the important part is:
-Which links actually forward traffic after convergence?
-
-That’s where this lab gets interesting.
+This demonstrates how PVST+ can distribute Layer 2 traffic across redundant links instead of relying on a single forwarding path.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Then I broke an uplink intentionally.
+Failure Testing:
 
-Watched:
-• STP recalculate topology
-• Root ports change
-• Blocked ports transition
-• Traffic reroute automatically
+An uplink was intentionally disconnected to observe STP reconvergence behavior.
 
-A few dropped pings during convergence.
-Then stable again.
+Observed:
+• Root ports recalculated
+• Blocking ports transitioned
+• Traffic rerouted automatically
+• Temporary packet drops during convergence
+• Stable forwarding restored after recalculation
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Included in the lab:
+Verification Performed:
+• show spanning-tree vlan
+• Root bridge validation
+• Port role analysis
+• Trunk verification
+• Continuous ping testing
+• Topology reconvergence observation
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Most STP tutorials stop at:
+“STP prevents switching loops.”
+
+This lab focused on:
+How STP determines actual Layer 2 traffic flow after convergence.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
 • Full topology
 • Interface mapping
-• Complete configs
+• Packet Tracer files
+• Switch configurations
 • Verification commands
-• Failure testing
-• Recovery steps
+• Failure testing scenarios
 
-Everything documented.
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST2
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNA #Cisco #Networking #STP #PVST #NetworkEngineer #Homelab #LearningInPublic
+#CCNA #Cisco #PVST #STP #Switching #Networking #NetworkEngineer #PacketTracer #Homelab
 

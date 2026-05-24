@@ -1,0 +1,146 @@
+LAB 16 — OSPF MTU Mismatch (Stuck in EXSTART)
+Objective
+
+Understand why OSPF neighbors get stuck in EXSTART/EXCHANGE state due to MTU mismatch and how enterprise engineers troubleshoot and fix it.
+
+Topology
+   R1 ---------------- R2
+ G0/0               G0/0
+10.10.10.1/30    10.10.10.2/30
+
+Both routers are in:
+
+Area 0
+Same subnet
+Same hello/dead timers
+
+But:
+
+R1 MTU = 1500
+R2 MTU = 1400
+
+This causes OSPF DBD packet rejection.
+
+IP Addressing
+Device	Interface	IP Address
+R1	G0/0	10.10.10.1/30
+R2	G0/0	10.10.10.2/30
+R1 Configuration
+hostname R1
+
+interface g0/0
+ ip address 10.10.10.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.10.10.0 0.0.0.3 area 0
+R2 Configuration
+hostname R2
+
+interface g0/0
+ ip address 10.10.10.2 255.255.255.252
+ ip mtu 1400
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+ network 10.10.10.0 0.0.0.3 area 0
+What Happens
+
+OSPF neighbors start forming.
+
+States go:
+
+DOWN → INIT → 2WAY → EXSTART
+
+Then stuck.
+
+Adjacency never becomes FULL.
+
+Verification Commands
+Check Neighbor State
+show ip ospf neighbor
+
+Expected:
+
+Neighbor ID     State
+2.2.2.2         EXSTART
+Check Interface MTU
+show interface g0/0
+
+R2 shows:
+
+MTU 1400 bytes
+Enterprise Troubleshooting
+Debug OSPF Adjacency
+debug ip ospf adj
+
+You may see messages like:
+
+Mismatch MTU detected
+Ignoring DBD from neighbor
+Retransmitting DBD packet
+
+Meaning:
+
+OSPF Database Description packets contain MTU value
+Neighbor rejects packets due to mismatch
+Adjacency stuck in EXSTART
+Why This Happens
+
+OSPF checks MTU during database exchange.
+
+Reason:
+
+Prevents routing blackholes
+Prevents large packet drops later
+
+If MTU mismatch exists:
+
+LSDB synchronization fails
+FULL adjacency never forms
+FIX 1 — Best Practice (Recommended)
+
+Match MTU on both routers.
+
+On R2
+interface g0/0
+ no ip mtu 1400
+
+OR
+
+ip mtu 1500
+FIX 2 — Enterprise Temporary Fix
+
+Ignore MTU check.
+
+On R1 or R2
+interface g0/0
+ ip ospf mtu-ignore
+Verify Final State
+show ip ospf neighbor
+
+Expected:
+
+FULL/DR
+
+or
+
+FULL/BDR
+Final Verification
+show ip route ospf
+
+OSPF routes should now appear normally.
+
+Real Enterprise Scenario
+
+This issue commonly happens when:
+
+MPLS provider changes MTU
+GRE/IPSec tunnels reduce MTU
+VMware virtual interfaces use different MTU
+Datacenter jumbo frames mismatch
+WAN engineers change MTU without informing network team
+
+Very common production issue.

@@ -1,0 +1,598 @@
+# CCNA LAB 02 — PVST+ Per-VLAN Load Balancing
+
+## Objective
+
+Build a Layer 2 campus topology using PVST+ where:
+
+* Distribution Switch 1 becomes ROOT for VLAN 10
+* Distribution Switch 2 becomes ROOT for VLAN 20
+* VLAN 30 uses default election
+* Different VLANs take different physical paths
+* Observe STP blocked ports per VLAN
+* Verify traffic forwarding behavior
+* Break one uplink and observe reconvergence
+
+This lab teaches:
+
+* PVST+ behavior
+* STP root bridge manipulation
+* Layer 2 path optimization
+* VLAN-specific forwarding decisions
+* Redundancy and failover behavior
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TOPOLOGY
+
+```
+                ┌─────────────┐
+                │    DSW1     │
+                │ Distribution│
+                └─────┬───────┘
+                      │
+      ┌───────────────┼───────────────┐
+      │               │               │
+      │               │               │
+ ┌────┴────┐     ┌────┴────┐     ┌────┴────┐
+ │  ASW1   │     │  ASW2   │     │  DSW2   │
+ └────┬────┘     └────┬────┘     └────┬────┘
+      │               │               │
+      │               │               │
+ ┌────┴────┐     ┌────┴────┐     ┌────┴────┐
+ │  PC1    │     │  PC2    │     │  ASW3   │
+ └─────────┘     └─────────┘     └────┬────┘
+                                       │
+                                  ┌────┴────┐
+                                  │   PC3   │
+                                  └─────────┘
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# DEVICE NAMING
+
+| Device | Role                  |
+| ------ | --------------------- |
+| DSW1   | Distribution Switch 1 |
+| DSW2   | Distribution Switch 2 |
+| ASW1   | Access Switch 1       |
+| ASW2   | Access Switch 2       |
+| ASW3   | Access Switch 3       |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VLAN PLAN
+
+| VLAN | Name      |
+| ---- | --------- |
+| 10   | USERS_V10 |
+| 20   | USERS_V20 |
+| 30   | USERS_V30 |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# INTERFACE CONNECTION TABLE
+
+| Device | Interface | Connected To | Interface |
+| ------ | --------- | ------------ | --------- |
+| DSW1   | G0/1      | DSW2         | G0/1      |
+| DSW1   | G0/2      | ASW1         | G0/1      |
+| DSW1   | G0/3      | ASW2         | G0/1      |
+| DSW2   | G0/2      | ASW2         | G0/2      |
+| DSW2   | G0/3      | ASW3         | G0/1      |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# HOST IP ADDRESSING
+
+## VLAN 10
+
+| Device | IP Address     |
+| ------ | -------------- |
+| PC1    | 10.10.10.10/24 |
+| PC2    | 10.10.10.20/24 |
+
+## VLAN 20
+
+| Device | IP Address     |
+| ------ | -------------- |
+| PC3    | 10.20.20.10/24 |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 1 — BASIC SWITCH CONFIGURATION
+
+# Configure hostname and disable DNS lookup
+
+## DSW1
+
+```cisco
+enable
+configure terminal
+
+hostname DSW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+end
+write memory
+```
+
+## DSW2
+
+```cisco
+enable
+configure terminal
+
+hostname DSW2
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+end
+write memory
+```
+
+## ASW1
+
+```cisco
+enable
+configure terminal
+
+hostname ASW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+end
+write memory
+```
+
+## ASW2
+
+```cisco
+enable
+configure terminal
+
+hostname ASW2
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+end
+write memory
+```
+
+## ASW3
+
+```cisco
+enable
+configure terminal
+
+hostname ASW3
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 2 — CREATE VLANs
+
+# Configure VLAN database on ALL switches
+
+```cisco
+configure terminal
+
+vlan 10
+ name USERS_V10
+
+vlan 20
+ name USERS_V20
+
+vlan 30
+ name USERS_V30
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 3 — CONFIGURE TRUNK LINKS
+
+# Configure uplinks as 802.1Q trunks
+
+## DSW1
+
+```cisco
+configure terminal
+
+interface range g0/1 - 3
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+## DSW2
+
+```cisco
+configure terminal
+
+interface range g0/1 - 3
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+## ASW1
+
+```cisco
+configure terminal
+
+interface g0/1
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+## ASW2
+
+```cisco
+configure terminal
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+## ASW3
+
+```cisco
+configure terminal
+
+interface g0/1
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 4 — CONFIGURE ACCESS PORTS
+
+## ASW1
+
+# PC1 in VLAN 10
+
+```cisco
+configure terminal
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+## ASW2
+
+# PC2 in VLAN 10
+
+```cisco
+configure terminal
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+## ASW3
+
+# PC3 in VLAN 20
+
+```cisco
+configure terminal
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 5 — VERIFY DEFAULT STP ELECTION
+
+# Before manipulating roots, check natural election
+
+Run on all switches:
+
+```cisco
+show spanning-tree vlan 10
+show spanning-tree vlan 20
+show spanning-tree vlan 30
+```
+
+Observe:
+
+* Which switch became root naturally
+* Which ports are forwarding
+* Which ports are blocking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 6 — CONFIGURE PVST+ LOAD BALANCING
+
+# Make DSW1 root for VLAN 10
+
+## DSW1
+
+```cisco
+configure terminal
+
+spanning-tree vlan 10 root primary
+
+end
+write memory
+```
+
+# Make DSW2 root for VLAN 20
+
+## DSW2
+
+```cisco
+configure terminal
+
+spanning-tree vlan 20 root primary
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 7 — VERIFICATION
+
+# Verify VLAN 10 Root
+
+```cisco
+show spanning-tree vlan 10
+```
+
+Expected:
+
+* DSW1 = Root Bridge
+
+# Verify VLAN 20 Root
+
+```cisco
+show spanning-tree vlan 20
+```
+
+Expected:
+
+* DSW2 = Root Bridge
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# EXPECTED STP BEHAVIOR
+
+## VLAN 10
+
+Traffic should prefer DSW1 paths.
+
+Possible blocked port:
+
+* ASW2 → DSW2 link blocking
+
+## VLAN 20
+
+Traffic should prefer DSW2 paths.
+
+Possible blocked port:
+
+* ASW2 → DSW1 link blocking
+
+Different VLANs should block DIFFERENT links.
+
+That is the core purpose of PVST+ load balancing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 8 — TEST CONNECTIVITY
+
+## Test VLAN 10
+
+From PC1:
+
+```bash
+ping 10.10.10.20
+```
+
+Successful.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TRACE THE ACTIVE PATH
+
+Run:
+
+```cisco
+show spanning-tree vlan 10
+show spanning-tree vlan 20
+```
+
+Observe:
+
+* Root ports
+* Designated ports
+* Alternate/Blocking ports
+
+Document:
+
+* VLAN 10 path
+* VLAN 20 path
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# BREAK TEST — SIMULATE UPLINK FAILURE
+
+# Shutdown DSW1 uplink to ASW2
+
+## DSW1
+
+```cisco
+configure terminal
+
+interface g0/3
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE FAILOVER
+
+Run immediately:
+
+```cisco
+show spanning-tree vlan 10
+```
+
+Expected:
+
+* Previously blocked port transitions to forwarding
+* Traffic reroutes through DSW2
+
+Test ping again:
+
+```bash
+ping 10.10.10.20
+```
+
+You should see:
+
+* 1–2 dropped packets
+* Connectivity restored automatically
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# FIX THE FAILURE
+
+## DSW1
+
+```cisco
+configure terminal
+
+interface g0/3
+ no shutdown
+
+end
+```
+
+Wait for STP reconvergence.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# FINAL VERIFICATION
+
+Run:
+
+```cisco
+show spanning-tree vlan 10
+show spanning-tree vlan 20
+show interfaces trunk
+```
+
+Verify:
+
+* Correct root bridges
+* Correct trunk ports
+* Correct blocked ports
+* Stable topology
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IMPORTANT SHOW COMMANDS
+
+## STP Status
+
+```cisco
+show spanning-tree
+```
+
+## VLAN-Specific STP
+
+```cisco
+show spanning-tree vlan 10
+```
+
+## Trunks
+
+```cisco
+show interfaces trunk
+```
+
+## MAC Address Learning
+
+```cisco
+show mac address-table
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# WHAT YOU LEARNED
+
+* PVST+ creates separate STP instances per VLAN
+* Different VLANs can use different physical paths
+* Root bridge placement controls traffic flow
+* STP dynamically reconverges after failures
+* Layer 2 redundancy without loops
+* Enterprise Layer 2 traffic engineering basics
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# REAL-WORLD USE CASE
+
+Enterprise networks commonly:
+
+* Use dual distribution switches
+* Split VLAN roots between them
+* Optimize uplink usage
+* Prevent one switch becoming bottleneck
+* Maintain redundancy during failures
+
+This is foundational knowledge for:
+
+* CCNA
+* CCNP Enterprise
+* Data Center networking
+* Campus architecture
+* Real production troubleshooting
+

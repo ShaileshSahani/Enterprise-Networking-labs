@@ -1,0 +1,133 @@
+🔧 Lab 18/50 — OSPF Stub Area Design & Route Filtering
+
+Built an advanced OSPF scalability lab today focused on Stub Areas and Totally Stubby Areas.
+
+🔥 OSPF Stub Area Design & Route Filtering
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• R1 → ASBR
+• R2 → ABR
+• R3 → Internal Area Router
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Initial State:
+
+Area 1 was configured as a normal OSPF area.
+
+R1 redistributed connected routes into OSPF, and R3 learned external routes normally.
+
+Verified using:
+
+show ip route ospf
+
+Observed:
+
+• O E2 external routes present in Area 1
+
+Then the real lab started.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1 — Convert Area 1 into Stub Area
+
+Configured:
+
+area 1 stub
+
+Result:
+
+✅ External Type-5 LSAs blocked
+✅ External routes disappeared
+✅ Default route injected automatically by the ABR
+
+Routing table became much smaller and cleaner.
+
+Verified using:
+
+show ip route ospf
+
+Instead of learning multiple external routes, R3 now only received:
+
+O*IA 0.0.0.0/0
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Step 2 — Convert Area 1 into Totally Stubby Area
+
+Configured on ABR:
+
+area 1 stub no-summary
+
+Result:
+
+✅ External routes removed
+✅ Inter-area summary routes removed
+✅ Only a default route remained
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+This lab demonstrated how enterprises reduce:
+
+• Routing table size
+• SPF calculations
+• CPU utilization
+• LSDB complexity
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Branch routers do not need thousands of enterprise routes.
+
+In real enterprise WAN environments, remote sites often only need:
+
+0.0.0.0/0 → toward HQ or Datacenter
+
+That is exactly why Stub and Totally Stubby Areas exist.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Important Concepts Practiced:
+
+• ABR vs ASBR
+• Type-5 LSAs
+• Default route injection
+• OSPF scalability
+• Route filtering
+• Area optimization
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Use Cases:
+
+• Branch offices
+• MPLS WAN environments
+• Large enterprise networks
+• Low-resource remote routers
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+The deeper I go into OSPF, the more I realize:
+
+Routing protocols are not just about connectivity —
+they are about scalability and intelligent control of information flow.
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST18
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNP #OSPF #Cisco #Routing #EnterpriseNetworking #Datacenter #NOC #Infrastructure #NetworkEngineering #Learning #MPLS #WAN
+

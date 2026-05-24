@@ -1,0 +1,121 @@
+🔧 Lab 16/50 — OSPF Neighbor Stuck in EXSTART Due to MTU Mismatch
+
+Built an advanced OSPF troubleshooting lab today focused on one of the most common enterprise routing failures:
+
+🔥 OSPF adjacency stuck in EXSTART because of MTU mismatch
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• 2 Routers
+• OSPF Area 0
+• Same subnet connectivity
+• Different interface MTU values
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Issue Created:
+
+• R1 MTU = 1500
+• R2 MTU = 1400
+
+Result:
+
+OSPF adjacency never reached FULL state and remained stuck in EXSTART.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Performed:
+
+✔️ Verified neighbor states using:
+
+show ip ospf neighbor
+
+✔️ Checked interface MTU values:
+
+show interface g0/0
+
+✔️ Captured OSPF adjacency behavior using:
+
+debug ip ospf adj
+
+Observed:
+
+• Continuous DBD retransmissions
+• MTU mismatch errors
+• Failed LSDB synchronization attempts
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Root Cause Analysis:
+
+OSPF validates MTU values during Database Description (DBD) packet exchange to prevent LSDB corruption and fragmentation-related synchronization issues.
+
+If MTU values do not match, adjacency formation stops before FULL state.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Fix Applied:
+
+1. Matched MTU values on both routers
+
+2. Tested alternative workaround using:
+
+ip ospf mtu-ignore
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+After Correction:
+
+✅ OSPF adjacency reached FULL state
+✅ Routes installed successfully
+✅ LSDB synchronization completed normally
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Many engineers immediately suspect:
+
+• Hello/dead timer mismatch
+• Authentication problems
+• Area mismatch
+
+But MTU mismatch is one of the most overlooked causes of EXSTART/EXCHANGE failures in enterprise environments.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Scenarios Where This Happens Frequently:
+
+• GRE/IPSec tunnels
+• MPLS WAN links
+• VMware virtual networking
+• Datacenter jumbo frame environments
+• ISP handoff modifications
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+This lab improved my understanding of:
+
+• OSPF neighbor formation
+• DBD packet exchange
+• LSDB synchronization
+• OSPF state transitions
+• Enterprise routing troubleshooting
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST16
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNP #OSPF #Cisco #Routing #Networking #NetworkEngineer #EnterpriseNetworking #Datacenter #Troubleshooting #Infrastructure #AWS #Fortinet
+

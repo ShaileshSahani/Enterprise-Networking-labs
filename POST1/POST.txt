@@ -1,108 +1,85 @@
-Lab 01/50 — STP Root Bridge Manipulation & Path Analysis
+🔧 Lab 01/50 — STP Root Bridge Manipulation & Path Analysis
 
-Built a 6-switch redundant Layer 2 topology today using Cisco 2960 switches.
-
-No static root bridge configuration initially.
-Let STP elect everything naturally first.
+Built a 6-switch redundant Layer 2 topology using Cisco 2960 switches to analyze real STP behavior under topology changes.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
 Topology:
 • 6 switches in a ring
 • Multiple redundant paths
-• Dual uplinks between core/distribution
-• VLAN 1 + VLAN 10 trunked everywhere
+• Dual uplinks between distribution/core
+• VLAN 1 and VLAN 10 trunked throughout the network
 
-Exactly the kind of topology where loops become dangerous very quickly.
+A topology where improper Layer 2 design can easily create switching loops.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Phase 1:
-Natural STP election.
+Phase 1 — Default STP Election
 
-No priorities configured.
+No bridge priorities configured initially.
 
 Observed:
-• Lowest MAC address became Root Bridge
-• STP blocked one redundant path automatically
-• Entire topology recalculated around the elected root
+• Lowest MAC address elected as Root Bridge
+• STP automatically blocked redundant links
+• Entire forwarding topology recalculated around the elected root
 
-Then mapped:
-• Root ports
-• Designated ports
-• Blocked ports
-• Actual forwarding path through the ring
+Verified:
+• Root Ports
+• Designated Ports
+• Blocking Ports
+• Active forwarding paths
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Phase 2:
-Forced S1 to become Root Primary.
+Phase 2 — Root Bridge Manipulation
 
 Configured:
-• S1 = Root Primary
-• S2 = Root Secondary
+• S1 as Root Primary
+• S2 as Root Secondary
 
-Waited for convergence and watched the entire Layer 2 topology shift.
+After convergence:
+• Root ports changed
+• Blocking ports shifted
+• Forwarding paths recalculated
+• Traffic flow through the topology changed completely
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-What changed:
-• Root ports moved
-• Blocked ports changed location
-• Some forwarding links became blocking
-• Traffic paths completely changed
-
-That’s the part most people never actually test.
-
-STP isn’t just:
-“Loop prevention.”
-
-It’s:
-“How the entire Layer 2 network decides where traffic flows.”
+This demonstrates how STP directly influences Layer 2 traffic engineering — not just loop prevention.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Verification included:
+Verification Performed:
 • show spanning-tree analysis
 • Root bridge validation
-• Blocked-port mapping
-• MAC path tracing
+• Blocked-port identification
+• MAC address path tracing
 • Continuous ping testing
-• Convergence validation
+• STP convergence observation
 
-No packet loss after stabilization.
-Clean forwarding topology.
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-Most networking tutorials stop at:
-“STP elects a root bridge.”
-
-This lab shows:
-What happens to the entire network when the root changes.
+Result:
+• Stable forwarding topology
+• No packet loss after convergence
+• Successful failover recalculation
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Included in the lab:
+Most tutorials stop at:
+“STP elects a Root Bridge.”
+
+This lab focused on:
+“How Layer 2 forwarding behavior changes when the Root Bridge changes.”
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
 • Full topology
-• Physical interface mapping
-• Complete switch configs
-• STP verification commands
-• Root manipulation testing
-• Path analysis
-• Convergence validation
+• Interface mapping
+• Packet Tracer lab
+• Switch configurations
+• Verification commands
+• STP path analysis
 
-Everything documented.
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST1
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNA #Cisco #STP #Networking #NetworkEngineer #Homelab #LearningInPublic #Switching
+#CCNA #Cisco #STP #Switching #Networking #NetworkEngineer #PacketTracer #Homelab
 

@@ -1,0 +1,457 @@
+# LAB 01 — STP Root Bridge Manipulation & Path Analysis
+
+## Objective
+
+Build a redundant Layer 2 ring topology using 6 Cisco switches.
+
+Observe:
+
+* Natural STP root bridge election
+* Root port selection
+* Blocked port placement
+* Traffic forwarding paths
+
+Then manually force:
+
+* S1 as Root Primary
+* S2 as Root Secondary
+
+Analyze:
+
+* How STP recalculates topology
+* Which ports move from forwarding to blocking
+* How traffic paths change after convergence
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TOPOLOGY
+
+```
+            S1 ------------- S2
+           /  \             /  \
+          /    \           /    \
+         /      \         /      \
+       S6 ------- S5 ---- S4 ---- S3
+```
+
+Redundant Uplinks:
+
+* S1 ↔ S3
+* S2 ↔ S4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# DEVICE ROLES
+
+| Device | Role         |
+| ------ | ------------ |
+| S1     | Core Switch  |
+| S2     | Distribution |
+| S3     | Distribution |
+| S4     | Access       |
+| S5     | Access       |
+| S6     | Access       |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VLAN PLAN
+
+| VLAN | Name       |
+| ---- | ---------- |
+| 1    | MANAGEMENT |
+| 10   | DATA_VLAN  |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# PHYSICAL CONNECTION TABLE
+
+| From Device | From Port | To Device | To Port |
+| ----------- | --------- | --------- | ------- |
+| S1          | Gi0/1     | S2        | Gi0/1   |
+| S2          | Gi0/2     | S3        | Gi0/1   |
+| S3          | Gi0/2     | S4        | Gi0/1   |
+| S4          | Gi0/2     | S5        | Gi0/1   |
+| S5          | Gi0/2     | S6        | Gi0/1   |
+| S6          | Gi0/2     | S1        | Gi0/2   |
+| S1          | Gi0/3     | S3        | Gi0/3   |
+| S2          | Gi0/3     | S4        | Gi0/3   |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 1 — BASIC SWITCH CONFIGURATION
+
+# Configure hostname, VLANs, and trunk links
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S1
+
+```cisco id="g9t1k4"
+enable
+configure terminal
+
+hostname S1
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-3
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S2
+
+```cisco id="h4m8q2"
+enable
+configure terminal
+
+hostname S2
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-3
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S3
+
+```cisco id="k7p3n1"
+enable
+configure terminal
+
+hostname S3
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-3
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S4
+
+```cisco id="t5r2v7"
+enable
+configure terminal
+
+hostname S4
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-3
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S5
+
+```cisco id="y8d6x0"
+enable
+configure terminal
+
+hostname S5
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-2
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S6
+
+```cisco id="q1w7e5"
+enable
+configure terminal
+
+hostname S6
+no ip domain-lookup
+
+vlan 10
+ name DATA_VLAN
+
+interface range gigabitEthernet 0/1-2
+ switchport mode trunk
+ switchport trunk allowed vlan 1,10
+ no shutdown
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 2 — VERIFY NATURAL STP ELECTION
+
+# No priorities configured yet
+
+Run on all switches:
+
+```cisco id="u4b2n8"
+show spanning-tree vlan 1
+show spanning-tree vlan 10
+show spanning-tree summary
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# EXPECTED RESULT
+
+* Switch with lowest MAC address becomes Root Bridge
+* One redundant path enters blocking state
+* STP prevents Layer 2 loop
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IDENTIFY BLOCKED PORTS
+
+Run:
+
+```cisco id="f9z3p6"
+show spanning-tree vlan 1
+```
+
+Look for:
+
+```text id="w6v2j4"
+Role = Alternate
+State = Blocking
+```
+
+Document:
+
+* Root Bridge
+* Root Ports
+* Designated Ports
+* Blocked Ports
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# PHASE 3 — FORCE ROOT BRIDGE MANUALLY
+
+# Make S1 the Root Primary
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## S1
+
+```cisco id="n8x5m2"
+configure terminal
+
+spanning-tree vlan 1 root primary
+spanning-tree vlan 10 root primary
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Configure Backup Root
+
+## S2
+
+```cisco id="r3k7t1"
+configure terminal
+
+spanning-tree vlan 1 root secondary
+spanning-tree vlan 10 root secondary
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# WAIT FOR CONVERGENCE
+
+Allow:
+
+* 30 seconds for STP recalculation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY ROOT CHANGE
+
+## Verify on S1
+
+```cisco id="m2v8p7"
+show spanning-tree vlan 1
+```
+
+Expected:
+
+```text id="d4t1x9"
+This bridge is the root
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY OTHER SWITCHES
+
+Run:
+
+```cisco id="c5n7w3"
+show spanning-tree vlan 1
+```
+
+Expected:
+
+* Root ID now matches S1 bridge ID
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE TOPOLOGY CHANGES
+
+Compare:
+
+* Previous blocked ports
+  VS
+* New blocked ports
+
+Observe:
+
+* Root ports changed
+* Traffic forwarding path changed
+* Some forwarding ports now blocking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# PATH ANALYSIS
+
+# Trace Layer 2 forwarding path
+
+Run:
+
+```cisco id="j9q4m8"
+show spanning-tree vlan 10 active
+```
+
+Manually follow:
+
+* Root ports
+* Forwarding interfaces
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OPTIONAL MAC TRACE
+
+```cisco id="p6r2x5"
+traceroute mac [S1_MAC] [S6_MAC] vlan 10
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# CONNECTIVITY VERIFICATION
+
+Ping between hosts across topology.
+
+Example:
+
+```bash id="s7v1n6"
+ping 10.10.10.10 repeat 100
+```
+
+Expected:
+
+* 0% packet loss
+* Stable forwarding path
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IMPORTANT SHOW COMMANDS
+
+## STP Overview
+
+```cisco id="z3m8k1"
+show spanning-tree
+```
+
+## VLAN-Specific STP
+
+```cisco id="x5n2q7"
+show spanning-tree vlan 10
+```
+
+## Trunk Verification
+
+```cisco id="v8r4t2"
+show interfaces trunk
+```
+
+## MAC Address Learning
+
+```cisco id="b1y7p5"
+show mac address-table
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# WHAT YOU LEARNED
+
+* Natural STP root election
+* Root bridge manipulation
+* Root port selection
+* STP loop prevention
+* Layer 2 path calculation
+* Convergence behavior after topology changes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# REAL-WORLD IMPORTANCE
+
+In enterprise networks:
+
+* Root bridge placement controls traffic flow
+* Bad root placement creates inefficient paths
+* STP recalculation impacts convergence
+* Incorrect topology design causes instability
+
+This is foundational knowledge for:
+
+* Campus networking
+* Data center switching
+* CCNA/CCNP Enterprise
+* Real-world Layer 2 troubleshooting
+

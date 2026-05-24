@@ -1,19 +1,20 @@
-Lab 05/50 — EtherChannel Mismatch Catastrophe
+🔧 Lab 05/50 — EtherChannel Mismatch Catastrophe
 
 Today’s lab was a good reminder that:
+
 Layer 2 problems become ugly very fast.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Built an EtherChannel between two switches using dual uplinks.
+Built an EtherChannel between two Cisco switches using dual uplinks.
 
 Then intentionally misconfigured it.
 
 One side:
-PAgP desirable
+• PAgP desirable
 
 Other side:
-mode on
+• mode on
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
@@ -28,61 +29,61 @@ Exactly the kind of issue that creates random packet loss in production and wast
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Checked:
-• EtherChannel states
-• STP behavior
-• Syslog messages
-• Port-channel status
+Verification Performed:
 
-Saw classic errors like:
+• EtherChannel state analysis
+• STP behavior validation
+• Syslog monitoring
+• Port-channel status verification
+• Interface consistency checks
+
+Observed classic errors such as:
+
 • channel misconfiguration
 • interfaces suspended
 • cannot bundle ports
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Then rebuilt the entire thing correctly using:
+Recovery Phase
+
+Rebuilt the topology correctly using:
 
 LACP active/active
 
-Immediately stabilized the topology.
+Immediately stabilized the network.
 
-Both physical links bundled cleanly into a single logical Port-Channel.
+Both physical interfaces bundled cleanly into a single logical Port-Channel.
 
-STP now saw only one logical path instead of multiple competing links.
+STP now detected only one logical path instead of multiple competing Layer 2 links.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Most tutorials explain EtherChannel like:
+Most tutorials explain EtherChannel as:
+
 “Combine links for more bandwidth.”
 
-This lab shows:
-What happens when negotiation modes don’t match.
+This lab focused on:
 
-And why proper consistency matters more than the commands themselves.
+What actually happens when negotiation protocols don’t match —
+and why consistency matters more than memorizing commands.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Included in the lab:
+Included in the repository:
+
 • Full topology
 • Interface mapping
 • Broken configuration
 • Verification commands
-• Debug output
-• Recovery process
-• Working LACP setup
+• Debug outputs
+• Recovery procedure
+• Working LACP configuration
 
-Everything documented.
+Everything documented step-by-step.
 
-━━━━━━━━━━━━━━━━━━━━━━
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST5
 
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNA #Cisco #EtherChannel #LACP #PAgP #Networking #NetworkEngineer #Homelab #LearningInPublic
+#CCNA #Cisco #EtherChannel #LACP #PAgP #STP #Networking #NetworkEngineer #Homelab #LearningInPublic
 

@@ -1,0 +1,211 @@
+LAB 18 — OSPF Stub Area & Totally Stubby Area
+Objective
+
+Understand how OSPF Stub Areas reduce routing table size by blocking external routes and how Totally Stubby Areas further reduce LSAs for scalability.
+
+This is heavily used in large enterprise and WAN environments.
+
+Topology
+        AREA 0                AREA 1
+   R1 ------------- R2 ---------------- R3
+ 1.1.1.1         ABR Router         3.3.3.3
+Lab Concept
+
+Initially:
+
+Area 1 is a normal area
+External routes from R1 are visible in R3 routing table
+
+Then:
+
+Convert Area 1 → Stub Area
+Observe external routes disappear
+Default route appears instead
+
+Finally:
+4. Convert Area 1 → Totally Stubby Area
+5. Inter-area routes also disappear
+6. Routing table becomes much smaller
+
+IP Addressing
+Link	IP Network
+R1-R2	10.12.12.0/30
+R2-R3	10.23.23.0/30
+Loopback R1	100.100.100.0/24
+Loopback R3	3.3.3.3/32
+Topology Roles
+Router	Role
+R1	ASBR
+R2	ABR
+R3	Internal Stub Router
+STEP 1 — Configure Normal OSPF Area
+R1 Configuration
+hostname R1
+
+interface g0/0
+ ip address 10.12.12.1 255.255.255.252
+ no shutdown
+
+interface loopback0
+ ip address 100.100.100.1 255.255.255.0
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.12.12.0 0.0.0.3 area 0
+ network 100.100.100.0 0.0.0.255 area 0
+
+redistribute connected subnets
+R2 Configuration
+hostname R2
+
+interface g0/0
+ ip address 10.12.12.2 255.255.255.252
+ no shutdown
+
+interface g0/1
+ ip address 10.23.23.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+ network 10.12.12.0 0.0.0.3 area 0
+ network 10.23.23.0 0.0.0.3 area 1
+R3 Configuration
+hostname R3
+
+interface g0/0
+ ip address 10.23.23.2 255.255.255.252
+ no shutdown
+
+interface loopback0
+ ip address 3.3.3.3 255.255.255.255
+
+router ospf 1
+ router-id 3.3.3.3
+ network 10.23.23.0 0.0.0.3 area 1
+ network 3.3.3.3 0.0.0.0 area 1
+Verify Initial Routing Table
+On R3
+show ip route ospf
+
+Expected:
+
+O E2 100.100.100.0/24
+
+This is an external route redistributed by R1.
+
+STEP 2 — Convert Area 1 into Stub Area
+
+Stub areas:
+❌ Block external LSAs (Type 5)
+✅ Receive default route from ABR
+
+Configure Stub Area
+On R2
+router ospf 1
+ area 1 stub
+On R3
+router ospf 1
+ area 1 stub
+What Happens
+
+External route disappears.
+
+Instead:
+
+O*IA 0.0.0.0/0
+
+Default route injected by ABR.
+
+Verification
+On R3
+show ip route ospf
+
+Observe:
+
+External route gone
+Default route present
+Why Enterprises Use Stub Areas
+
+Benefits:
+
+Smaller routing table
+Reduced SPF calculations
+Faster convergence
+Lower CPU/RAM usage
+Better WAN scalability
+
+Very common in:
+
+Branch offices
+Remote WAN sites
+Large enterprises
+STEP 3 — Convert to Totally Stubby Area
+
+Now:
+
+Even inter-area routes are blocked
+Only default route remains
+
+This further minimizes routing information.
+
+Configure Totally Stubby
+On ABR (R2)
+router ospf 1
+ area 1 stub no-summary
+On R3
+
+(No change needed)
+
+router ospf 1
+ area 1 stub
+What Happens Now
+
+R3 receives:
+✅ Only default route
+
+Everything else hidden.
+
+Routing table becomes very small.
+
+Verification
+show ip route ospf
+
+Expected:
+
+O*IA 0.0.0.0/0
+
+No external routes.
+No inter-area routes.
+
+OSPF LSA Behavior
+Area Type	External LSAs	Summary LSAs
+Normal	Allowed	Allowed
+Stub	Blocked	Allowed
+Totally Stubby	Blocked	Blocked
+Enterprise Real-World Example
+
+Branch office:
+
+Doesn’t need full enterprise routing table
+Only needs default path toward HQ
+
+Instead of learning:
+
+Thousands of routes
+Internet prefixes
+Datacenter routes
+
+Branch simply gets:
+
+0.0.0.0/0
+
+Much more scalable.
+
+Important Rules
+
+Stub Areas CANNOT contain:
+
+ASBRs
+External Type-5 LSAs
+Virtual links

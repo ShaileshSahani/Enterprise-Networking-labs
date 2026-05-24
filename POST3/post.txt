@@ -1,13 +1,12 @@
-Lab 03/50 — RSTP vs Legacy STP Convergence
+🔧 Lab 03/50 — RSTP vs Legacy STP Convergence
 
-Today’s lab was simple:
+Today’s objective was simple:
 
-Break the network and measure how fast it recovers.
+Break the network and measure how quickly it recovers.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
 Built a redundant Layer 2 topology with:
-
 • 1 Distribution switch
 • 2 Access switches
 • Redundant uplinks
@@ -15,77 +14,73 @@ Built a redundant Layer 2 topology with:
 • Continuous traffic testing
 
 Then compared:
-
 • Legacy 802.1D STP
-VS
-• Rapid STP (RSTP)
+vs
+• Rapid Spanning Tree Protocol (RSTP)
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-First test:
+Phase 1 — Legacy STP Testing
 
-One switch running classic STP.
+The topology initially operated using classic 802.1D STP.
 
-Pulled the active uplink.
+An active uplink was disconnected intentionally during continuous ping testing.
 
-Result:
-~30+ seconds of packet loss before traffic recovered.
+Observed:
+• ~30+ seconds of packet loss
+• Slow topology recalculation
+• Port transitions through:
 
-Watched the port move through:
-• Listening
-• Learning
-• Forwarding
+* Listening
+* Learning
+* Forwarding
 
-Exactly why legacy STP feels painfully slow in production.
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-Second test:
-
-Converted the topology to RSTP.
-
-Repeated the same link failure.
-
-Result:
-Traffic recovered almost immediately.
-
-Only a couple dropped pings during convergence.
-
-Huge difference.
+This demonstrated why traditional STP convergence can significantly impact production traffic during failures.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Most people memorize:
-“RSTP is faster.”
+Phase 2 — RSTP Testing
 
-This lab shows:
-HOW much faster.
+The same topology was migrated to RSTP and the identical uplink failure was repeated.
 
-And more importantly:
-What that actually looks like during a real failure.
+Observed:
+• Near-immediate traffic recovery
+• Only a few dropped pings during reconvergence
+• Rapid port role/state transitions
+• Faster restoration of forwarding paths
+
+The difference in recovery time was substantial.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Included in the lab:
+Most networking tutorials simply state:
+“RSTP is faster than STP.”
+
+This lab focused on:
+How convergence speed directly affects live traffic during real Layer 2 failures.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+• show spanning-tree analysis
+• Port role/state verification
+• Continuous ping monitoring
+• Failure simulation
+• Reconvergence observation
+• Recovery comparison testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
 • Full topology
 • Interface mapping
-• Complete configs
-• STP verification
-• Continuous ping testing
-• Failure simulation
-• Recovery comparison
+• Packet Tracer files
+• Complete switch configurations
+• Verification commands
+• Failure testing scenarios
 
-Everything documented.
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST3
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNA #Cisco #RSTP #STP #Networking #NetworkEngineer #Homelab #LearningInPublic
+#CCNA #Cisco #RSTP #STP #Switching #Networking #NetworkEngineer #PacketTracer #Homelab
 

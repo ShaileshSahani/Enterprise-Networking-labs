@@ -1,0 +1,175 @@
+LAB 17 — OSPF Network Type Mismatch (FULL Adjacency but No Proper Route Exchange)
+Objective
+
+Understand how OSPF network type mismatch can create strange situations where:
+
+Neighbors become FULL
+But routing behavior becomes unstable or incorrect
+LSAs and DR/BDR behavior mismatch
+
+This is a very real enterprise troubleshooting scenario.
+
+Topology
+      Ethernet Link
+ R1 ---------------- R2
+G0/0                G0/0
+10.1.1.1/30      10.1.1.2/30
+Lab Idea
+
+Both routers are connected over Ethernet.
+
+But:
+
+Router	OSPF Network Type
+R1	Broadcast (default)
+R2	Point-to-Point
+
+This creates:
+
+Different OSPF expectations
+DR/BDR mismatch
+Inconsistent LSDB behavior
+
+Sometimes adjacency becomes FULL but routing behaves abnormally.
+
+IP Addressing
+Device	Interface	IP
+R1	G0/0	10.1.1.1/30
+R2	G0/0	10.1.1.2/30
+R1 Configuration
+
+(Default broadcast network type)
+
+hostname R1
+
+interface g0/0
+ ip address 10.1.1.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.1.1.0 0.0.0.3 area 0
+R2 Configuration
+
+(Change network type to point-to-point)
+
+hostname R2
+
+interface g0/0
+ ip address 10.1.1.2 255.255.255.252
+ ip ospf network point-to-point
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+ network 10.1.1.0 0.0.0.3 area 0
+What Happens
+
+OSPF neighbors may still become FULL.
+
+BUT:
+
+DR/BDR election behavior differs
+LSAs may not synchronize correctly
+Route advertisement behavior becomes inconsistent
+
+This is dangerous because:
+✅ Neighbor appears healthy
+❌ Routing behavior is not fully healthy
+
+Classic enterprise trap.
+
+Verification Commands
+Check Neighbor State
+show ip ospf neighbor
+
+You may see:
+
+FULL/DR
+
+or
+
+FULL/-
+Check OSPF Interface Details
+On R1
+show ip ospf interface g0/0
+
+Expected:
+
+Network Type BROADCAST
+On R2
+show ip ospf interface g0/0
+
+Expected:
+
+Network Type POINT_TO_POINT
+Why This Is a Problem
+Broadcast Network
+
+OSPF expects:
+
+DR election
+Multicast updates
+Shared multi-access segment
+Point-to-Point Network
+
+OSPF expects:
+
+No DR/BDR
+Direct adjacency only
+Enterprise Symptoms
+
+You may observe:
+
+Missing routes
+LSA inconsistencies
+One-way advertisement issues
+SPF recalculation instability
+Random convergence delays
+
+Very hard to troubleshoot because neighbor still shows FULL.
+
+Troubleshooting Method
+Step 1 — Verify Neighbor
+show ip ospf neighbor
+
+Looks normal.
+
+Step 2 — Verify Interface Network Type
+show ip ospf interface g0/0
+
+This reveals the real issue.
+
+FIX
+
+Match network type on both routers.
+
+Option 1 — Make Both Broadcast
+
+Remove custom config on R2:
+
+interface g0/0
+ no ip ospf network point-to-point
+Option 2 — Make Both Point-to-Point
+
+On BOTH routers:
+
+interface g0/0
+ ip ospf network point-to-point
+Clear OSPF Process
+clear ip ospf process
+Final Verification
+show ip ospf interface g0/0
+
+Both routers should now show SAME network type.
+
+Real Enterprise Scenarios
+
+This issue commonly appears when:
+
+Migrating MPLS links
+Ethernet WAN conversions
+Metro Ethernet deployments
+Tunnel migrations
+Datacenter interconnects
+Engineers copy configs from serial links to Ethernet

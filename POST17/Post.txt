@@ -1,0 +1,125 @@
+🔧 Lab 17/50 — OSPF Network Type Mismatch
+
+Built another enterprise-level OSPF troubleshooting lab today focused on a very deceptive routing issue:
+
+🔥 OSPF Network Type Mismatch
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Scenario:
+
+Two routers connected over Ethernet with OSPF enabled.
+
+But:
+
+• R1 using default BROADCAST network type
+• R2 configured as POINT-TO-POINT
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Result:
+
+✅ OSPF neighbors reached FULL state
+❌ Routing behavior became inconsistent
+
+This is one of the most dangerous troubleshooting situations because the adjacency appears healthy while underlying OSPF behavior is not fully synchronized.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Performed:
+
+✔️ Verified neighbor state using:
+
+show ip ospf neighbor
+
+Neighbor status appeared normal:
+
+FULL/DR
+
+✔️ Investigated deeper using:
+
+show ip ospf interface g0/0
+
+Found:
+
+• R1 → Network Type BROADCAST
+• R2 → Network Type POINT-TO-POINT
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Root Cause Analysis:
+
+Different OSPF network types create different expectations for:
+
+• DR/BDR elections
+• LSA handling
+• Neighbor relationships
+• SPF calculations
+
+Even when neighbors reach FULL state, LSDB behavior and route propagation can still become unstable.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Fix Applied:
+
+Matched OSPF network type on both routers.
+
+Tested both scenarios:
+
+1. Both BROADCAST
+2. Both POINT-TO-POINT
+
+After clearing the OSPF process:
+
+✅ Stable adjacency
+✅ Consistent route exchange
+✅ Proper LSA synchronization
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+In enterprise environments:
+
+FULL adjacency does NOT always mean the network is healthy.
+
+Real troubleshooting requires validating:
+
+• OSPF network type
+• Interface behavior
+• LSDB consistency
+• Route propagation
+• SPF stability
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Scenarios Where This Happens:
+
+• MPLS migrations
+• Metro Ethernet deployments
+• Tunnel conversions
+• Datacenter interconnects
+• Engineers reusing configurations across different link types
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+The deeper I go into routing labs, the more I realize:
+
+Enterprise networking is less about configuration —
+and more about understanding protocol behavior under failure conditions.
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST17
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNP #OSPF #Cisco #Routing #Networking #NetworkEngineering #EnterpriseNetworking #Datacenter #Troubleshooting #Infrastructure #NOC #Learning
+

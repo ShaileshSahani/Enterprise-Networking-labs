@@ -1,0 +1,572 @@
+# CCNA LAB 04 — UplinkFast & BackboneFast in Action
+
+## Objective
+
+Build a Layer 2 redundant topology and observe how classic 802.1D STP converges during indirect and direct link failures.
+
+Test:
+
+* Default STP convergence behavior
+* UplinkFast recovery improvement
+* BackboneFast indirect failure detection
+
+Measure:
+
+* Packet loss duration
+* Port state transitions
+* Recovery time improvement
+
+This lab demonstrates why Cisco introduced STP enhancement features before RSTP existed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TOPOLOGY
+
+```
+                  ┌─────────────┐
+                  │    DSW1     │
+                  │ Root Bridge │
+                  └──────┬──────┘
+                         │
+           ┌─────────────┴─────────────┐
+           │                           │
+      ┌────┴────┐                 ┌────┴────┐
+      │  ASW1   │=================│  ASW2   │
+      └────┬────┘                 └────┬────┘
+           │                           │
+         ┌─┴─┐                       ┌─┴─┐
+         │PC1│                       │PC2│
+         └───┘                       └───┘
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# DEVICE ROLES
+
+| Device | Role          |
+| ------ | ------------- |
+| DSW1   | Root Bridge   |
+| ASW1   | Access Switch |
+| ASW2   | Access Switch |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VLAN PLAN
+
+| VLAN | Name  |
+| ---- | ----- |
+| 10   | USERS |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# INTERFACE CONNECTION TABLE
+
+| Device | Interface | Connected To | Interface |
+| ------ | --------- | ------------ | --------- |
+| DSW1   | G0/1      | ASW1         | G0/1      |
+| DSW1   | G0/2      | ASW2         | G0/1      |
+| ASW1   | G0/2      | ASW2         | G0/2      |
+| ASW1   | F0/1      | PC1          | NIC       |
+| ASW2   | F0/1      | PC2          | NIC       |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IP ADDRESSING
+
+| Device | IP Address     |
+| ------ | -------------- |
+| PC1    | 10.10.10.10/24 |
+| PC2    | 10.10.10.20/24 |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# LAB GOALS
+
+We will test:
+
+## Scenario 1 — Default 802.1D STP
+
+Expected:
+
+* Slow failover
+* 30–50 second outage
+
+## Scenario 2 — UplinkFast Enabled
+
+Expected:
+
+* Faster blocked-port transition
+
+## Scenario 3 — BackboneFast Enabled
+
+Expected:
+
+* Faster indirect link failure detection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 1 — BASIC CONFIGURATION
+
+## DSW1
+
+# Configure root bridge
+
+```cisco id="q38g74"
+enable
+configure terminal
+
+hostname DSW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+vlan 10
+ name USERS
+
+spanning-tree vlan 10 root primary
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ASW1
+
+```cisco id="x8x18i"
+enable
+configure terminal
+
+hostname ASW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+vlan 10
+ name USERS
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ASW2
+
+```cisco id="t7j7ks"
+enable
+configure terminal
+
+hostname ASW2
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+vlan 10
+ name USERS
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 2 — VERIFY INITIAL STP TOPOLOGY
+
+Run:
+
+```cisco id="fdbux2"
+show spanning-tree vlan 10
+```
+
+Expected:
+
+* DSW1 becomes root
+* One redundant link blocks
+
+Example:
+
+```text id="azm13w"
+ASW2 G0/2 Blocking
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 3 — START CONTINUOUS PING
+
+From PC1:
+
+```bash id="c4ll7l"
+ping 10.10.10.20 -t
+```
+
+Keep ping running throughout lab.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# SCENARIO 1 — DEFAULT STP FAILURE
+
+# Shutdown active uplink
+
+## ASW1
+
+```cisco id="zvjlwm"
+configure terminal
+
+interface g0/1
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE RESULTS
+
+Expected:
+
+* Long outage
+* Multiple ping drops
+* Port transitions through:
+
+  * Blocking
+  * Listening
+  * Learning
+  * Forwarding
+
+Recovery:
+~30–50 seconds
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY PORT STATES
+
+Run:
+
+```cisco id="vjlwmr"
+show spanning-tree vlan 10
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# RESTORE LINK
+
+## ASW1
+
+```cisco id="62jqca"
+configure terminal
+
+interface g0/1
+ no shutdown
+
+end
+```
+
+Wait for topology stabilization.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# SCENARIO 2 — ENABLE UPLINKFAST
+
+# UplinkFast improves access-switch failover speed
+
+## ASW1
+
+```cisco id="p6pm9d"
+configure terminal
+
+spanning-tree uplinkfast
+
+end
+write memory
+```
+
+## ASW2
+
+```cisco id="1h6q6g"
+configure terminal
+
+spanning-tree uplinkfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY UPLINKFAST
+
+Run:
+
+```cisco id="epq8r2"
+show spanning-tree uplinkfast
+```
+
+Expected:
+
+```text id="8d2mgp"
+UplinkFast is enabled
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TEST FAILURE AGAIN
+
+Start ping again:
+
+```bash id="0g6m6h"
+ping 10.10.10.20 -t
+```
+
+Shutdown active uplink again.
+
+## ASW1
+
+```cisco id="k6r7zz"
+configure terminal
+
+interface g0/1
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE RESULTS
+
+Expected:
+
+* Much faster recovery
+* Backup port transitions immediately
+* Minimal packet loss
+
+Why?
+
+UplinkFast skips normal listening/learning delays for backup uplinks.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# RESTORE LINK
+
+```cisco id="v5yjlwm"
+configure terminal
+
+interface g0/1
+ no shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# SCENARIO 3 — BACKBONEFAST
+
+# BackboneFast speeds up INDIRECT failure detection
+
+Enable on ALL switches.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## DSW1
+
+```cisco id="bl6mq4"
+configure terminal
+
+spanning-tree backbonefast
+
+end
+write memory
+```
+
+## ASW1
+
+```cisco id="j78n6x"
+configure terminal
+
+spanning-tree backbonefast
+
+end
+write memory
+```
+
+## ASW2
+
+```cisco id="1m0u5y"
+configure terminal
+
+spanning-tree backbonefast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY BACKBONEFAST
+
+Run:
+
+```cisco id="8p9j4g"
+show spanning-tree backbonefast
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# INDIRECT FAILURE TEST
+
+# Simulate upstream failure
+
+Shutdown DSW1 interface toward ASW2.
+
+## DSW1
+
+```cisco id="kr7lg4"
+configure terminal
+
+interface g0/2
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE RESULTS
+
+Without BackboneFast:
+
+* Switch waits max-age timer
+
+With BackboneFast:
+
+* Immediate inferior BPDU detection
+* Faster topology recalculation
+
+Expected:
+
+* Noticeably faster recovery
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OPTIONAL DEBUG COMMANDS
+
+## STP Events
+
+```cisco id="v0ykhh"
+debug spanning-tree events
+```
+
+## BPDU Activity
+
+```cisco id="9ux0b5"
+debug spanning-tree bpdu
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IMPORTANT VERIFICATION COMMANDS
+
+## STP Summary
+
+```cisco id="ivx2yv"
+show spanning-tree summary
+```
+
+## VLAN STP State
+
+```cisco id="s5jlwm"
+show spanning-tree vlan 10
+```
+
+## UplinkFast Status
+
+```cisco id="85ls00"
+show spanning-tree uplinkfast
+```
+
+## BackboneFast Status
+
+```cisco id="pjqwt4"
+show spanning-tree backbonefast
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# EXPECTED RESULTS
+
+| Feature      | Recovery Speed         |
+| ------------ | ---------------------- |
+| Default STP  | Slow                   |
+| UplinkFast   | Fast direct failover   |
+| BackboneFast | Fast indirect failover |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# WHAT YOU LEARNED
+
+* Legacy STP convergence behavior
+* Difference between direct and indirect failures
+* How UplinkFast improves failover
+* How BackboneFast detects hidden failures
+* Why Cisco created STP enhancements before RSTP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# REAL-WORLD IMPORTANCE
+
+Before RSTP became standard, enterprise networks used:
+
+* UplinkFast
+* BackboneFast
+* PortFast
+
+to reduce outage duration during failures.
+
+Understanding these features helps during:
+
+* Legacy network troubleshooting
+* CCNP studies
+* Production migration projects
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# FINAL VERIFICATION
+
+Run:
+
+```cisco id="7gf6hh"
+show spanning-tree summary
+show spanning-tree vlan 10
+show interfaces trunk
+```
+
+Verify:
+
+* Stable topology
+* Correct root bridge
+* Working redundancy
+* Faster convergence behavior
+

@@ -1,0 +1,471 @@
+# CCNA LAB 03 — RSTP Convergence vs 802.1D STP
+
+## Objective
+
+Build a redundant Layer 2 topology and compare:
+
+* Rapid Spanning Tree Protocol (RSTP)
+  VS
+* Legacy IEEE 802.1D Spanning Tree
+
+Simulate a link failure and measure:
+
+* Convergence speed
+* Packet loss duration
+* STP state transitions
+* Traffic recovery behavior
+
+This lab demonstrates why RSTP replaced legacy STP in enterprise networks.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# TOPOLOGY
+
+```
+                 ┌─────────────┐
+                 │    DSW1     │
+                 └──────┬──────┘
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+        ┌────┴────┐           ┌────┴────┐
+        │  ASW1   │===========│  ASW2   │
+        └────┬────┘           └────┬────┘
+             │                     │
+           ┌─┴─┐                 ┌─┴─┐
+           │PC1│                 │PC2│
+           └───┘                 └───┘
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# DEVICE ROLES
+
+| Device | Role          |
+| ------ | ------------- |
+| DSW1   | Root Bridge   |
+| ASW1   | Access Switch |
+| ASW2   | Access Switch |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VLAN PLAN
+
+| VLAN | Name  |
+| ---- | ----- |
+| 10   | USERS |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# INTERFACE CONNECTION TABLE
+
+| Device | Interface | Connected To | Interface |
+| ------ | --------- | ------------ | --------- |
+| DSW1   | G0/1      | ASW1         | G0/1      |
+| DSW1   | G0/2      | ASW2         | G0/1      |
+| ASW1   | G0/2      | ASW2         | G0/2      |
+| ASW1   | F0/1      | PC1          | NIC       |
+| ASW2   | F0/1      | PC2          | NIC       |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# IP ADDRESSING
+
+| Device | IP Address     |
+| ------ | -------------- |
+| PC1    | 10.10.10.10/24 |
+| PC2    | 10.10.10.20/24 |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# LAB GOAL
+
+We will test TWO scenarios:
+
+## Scenario 1 — Legacy STP (802.1D)
+
+Expected:
+
+* ~30 to 50 second convergence
+
+## Scenario 2 — RSTP
+
+Expected:
+
+* ~1 to 5 second convergence
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 1 — BASIC CONFIGURATION
+
+## DSW1
+
+```cisco id="bw2s4k"
+enable
+configure terminal
+
+hostname DSW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+vlan 10
+ name USERS
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+spanning-tree vlan 10 root primary
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ASW1
+
+# Configure legacy 802.1D STP
+
+```cisco id="s34cg7"
+enable
+configure terminal
+
+hostname ASW1
+no ip domain-lookup
+
+spanning-tree mode pvst
+
+vlan 10
+ name USERS
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ASW2
+
+# Configure RSTP
+
+```cisco id="mfg27u"
+enable
+configure terminal
+
+hostname ASW2
+no ip domain-lookup
+
+spanning-tree mode rapid-pvst
+
+vlan 10
+ name USERS
+
+interface range g0/1 - 2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 2 — VERIFY STP TOPOLOGY
+
+Run on all switches:
+
+```cisco id="hxr40k"
+show spanning-tree vlan 10
+```
+
+Expected:
+
+* DSW1 becomes root bridge
+* One redundant link enters blocking/discarding state
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 3 — START CONTINUOUS PING
+
+From PC1:
+
+```bash id="2pkvij"
+ping 10.10.10.20 -t
+```
+
+Keep ping running continuously.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 4 — IDENTIFY BLOCKED PORT
+
+Run:
+
+```cisco id="f85l7n"
+show spanning-tree vlan 10
+```
+
+Find the blocked/discarding interface.
+
+Example:
+
+```text
+ASW2 G0/2 Alternate Discarding
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 5 — BREAK THE ACTIVE LINK
+
+Shutdown forwarding uplink.
+
+Example:
+
+## ASW1
+
+```cisco id="d1s85f"
+configure terminal
+
+interface g0/1
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE CONVERGENCE
+
+Watch continuous ping.
+
+Expected with legacy STP side involved:
+
+* Multiple ping drops
+* 30+ second outage possible
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY STP TRANSITION
+
+Run:
+
+```cisco id="y8o8ti"
+show spanning-tree vlan 10
+```
+
+Observe:
+
+* Previously blocked port transitions:
+
+  * Blocking
+  * Listening
+  * Learning
+  * Forwarding
+
+Classic 802.1D behavior.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 6 — RESTORE LINK
+
+## ASW1
+
+```cisco id="33m2k5"
+configure terminal
+
+interface g0/1
+ no shutdown
+
+end
+```
+
+Wait for topology stabilization.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 7 — ENABLE FULL RSTP
+
+Convert ASW1 to Rapid PVST.
+
+## ASW1
+
+```cisco id="mo9t4s"
+configure terminal
+
+spanning-tree mode rapid-pvst
+
+end
+write memory
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFY RSTP
+
+Run:
+
+```cisco id="2p25h0"
+show spanning-tree summary
+```
+
+Expected:
+
+```text
+Switch is in rapid-pvst mode
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# STEP 8 — REPEAT FAILURE TEST
+
+Start continuous ping again:
+
+```bash id="14evw2"
+ping 10.10.10.20 -t
+```
+
+Shutdown active uplink again.
+
+## ASW1
+
+```cisco id="p72k50"
+configure terminal
+
+interface g0/1
+ shutdown
+
+end
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OBSERVE RSTP CONVERGENCE
+
+Expected:
+
+* 1–3 dropped packets only
+* Near-instant failover
+* Rapid transition to forwarding state
+
+No long listening/learning timers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# VERIFICATION COMMANDS
+
+## View STP Mode
+
+```cisco id="rq3nl0"
+show spanning-tree summary
+```
+
+## View VLAN STP Details
+
+```cisco id="yit0r7"
+show spanning-tree vlan 10
+```
+
+## View Interface Status
+
+```cisco id="jz2znv"
+show interfaces status
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# OPTIONAL DEBUG COMMANDS
+
+## STP Events
+
+```cisco id="22f4u6"
+debug spanning-tree events
+```
+
+## STP BPDU Activity
+
+```cisco id="p0z0j6"
+debug spanning-tree bpdu
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# EXPECTED RESULTS
+
+## Legacy STP
+
+| Behavior          | Result             |
+| ----------------- | ------------------ |
+| Convergence       | Slow               |
+| Packet Loss       | High               |
+| Transition States | Listening/Learning |
+| Recovery Time     | 30–50 sec          |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## RSTP
+
+| Behavior          | Result   |
+| ----------------- | -------- |
+| Convergence       | Fast     |
+| Packet Loss       | Minimal  |
+| Transition States | Rapid    |
+| Recovery Time     | ~1–5 sec |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# WHAT YOU LEARNED
+
+* Difference between 802.1D and RSTP
+* Why legacy STP converges slowly
+* RSTP rapid synchronization behavior
+* Impact of convergence on real traffic
+* Importance of fast failover in enterprise networks
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# REAL-WORLD IMPORTANCE
+
+Slow Layer 2 convergence causes:
+
+* Voice call drops
+* Application timeout
+* Database disconnects
+* Production outages
+
+RSTP dramatically improves network recovery time and is standard in modern enterprise switching environments.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# FINAL VERIFICATION
+
+Run:
+
+```cisco id="q08hn8"
+show spanning-tree summary
+show spanning-tree vlan 10
+show interfaces trunk
+```
+
+Verify:
+
+* RSTP active
+* Correct root bridge
+* Stable forwarding topology
+* Minimal convergence interruption
+
