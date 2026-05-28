@@ -1,0 +1,184 @@
+🔧 Lab 19/50 — OSPF ↔ BGP Redistribution Lab
+
+Built a beginner-friendly enterprise routing lab today focused on one of the most important real-world networking concepts:
+
+🔥 Route Redistribution between OSPF and BGP
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Build communication between an OSPF domain and a BGP domain using route redistribution.
+
+Validated:
+
+• OSPF neighbor formation
+• BGP peering
+• Route redistribution
+• Cross-protocol route learning
+• End-to-end connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+PC1 → R1 → CORE → R2 → PC2
+
+Routing Design:
+
+• R1 running OSPF
+• R2 running BGP
+• CORE acting as redistribution router between OSPF and BGP
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Network Structure:
+
+LAN Networks:
+
+• 192.168.1.0/24 → OSPF side
+• 192.168.2.0/24 → BGP side
+
+WAN Links:
+
+• R1 ↔ CORE → 10.10.10.0/30
+• CORE ↔ R2 → 20.20.20.0/30
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+OSPF Side:
+
+R1 advertised:
+
+192.168.1.0/24
+
+toward CORE using OSPF Area 0.
+
+Verified:
+
+• OSPF neighbor reached FULL state
+• LSDB exchange completed successfully
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+BGP Side:
+
+R2 advertised:
+
+192.168.2.0/24
+
+toward CORE using eBGP.
+
+Verified:
+
+• BGP peering established successfully
+• Neighbor state became ESTABLISHED
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Redistribution Configuration:
+
+On CORE:
+
+✔️ Injected OSPF routes into BGP
+
+redistribute ospf 1
+
+✔️ Injected BGP routes into OSPF
+
+redistribute bgp 65000 subnets
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Result:
+
+R2 learned:
+
+192.168.1.0/24
+
+through BGP.
+
+R1 learned:
+
+192.168.2.0/24
+
+through OSPF external routes.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+OSPF:
+
+show ip ospf neighbor
+
+BGP:
+
+show ip bgp summary
+
+Routing Table:
+
+show ip route
+
+Observed:
+
+✅ OSPF FULL adjacency
+✅ BGP ESTABLISHED state
+✅ OSPF external routes installed
+✅ BGP learned prefixes visible
+✅ Successful end-to-end connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Final Connectivity Test:
+
+From PC1:
+
+ping 192.168.2.10
+
+Result:
+
+✅ Successful replies
+✅ Redistribution working correctly
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Redistribution is one of the most critical concepts in enterprise networking because real environments rarely run a single routing protocol everywhere.
+
+Different parts of the network often use:
+
+• OSPF internally
+• BGP at the edge
+• MPLS provider routing
+• Cloud route exchange
+• Hybrid WAN architectures
+
+The redistribution router becomes the bridge between routing domains.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+This lab improved my understanding of:
+
+• OSPF route advertisement
+• BGP peering behavior
+• Route redistribution logic
+• External route injection
+• Enterprise edge design
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST19
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNP #OSPF #BGP #Redistribution #Routing #Cisco #EnterpriseNetworking #NetworkEngineering #Infrastructure #Datacenter #LearningInPublic
+

@@ -1,0 +1,174 @@
+🔧 Lab 08/50 — HSRP (Hot Standby Router Protocol)
+
+Built a high-availability enterprise gateway lab today focused on one of the most important redundancy protocols in campus networks:
+
+🔥 HSRP Gateway Redundancy & Automatic Failover
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Configure HSRP between two multilayer switches to provide continuous default gateway availability for end users.
+
+Validated:
+
+• Active/Standby election
+• Virtual gateway operation
+• Automatic failover
+• Gateway redundancy
+• Continuous client connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Topology:
+
+• MLS1 acting as ACTIVE HSRP router
+• MLS2 acting as STANDBY HSRP router
+• SW1 as access layer switch
+• PC1 and PC2 connected in VLAN 10
+
+Network:
+
+• VLAN 10 → 10.10.10.0/24
+• HSRP Virtual Gateway → 10.10.10.1
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+How HSRP Worked in the Lab:
+
+MLS1 handled all gateway traffic using:
+
+10.10.10.1
+
+MLS2 remained in standby state waiting for failure detection.
+
+Clients never used the physical IPs directly.
+
+Instead, all hosts used the shared HSRP virtual IP as their default gateway.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Performed:
+
+✔️ Created VLAN 10 across all switches
+
+✔️ Configured trunk uplinks between:
+
+• MLS1 ↔ SW1
+• MLS2 ↔ SW1
+
+✔️ Enabled Layer 3 routing using:
+
+ip routing
+
+✔️ Configured SVIs:
+
+MLS1:
+10.10.10.2
+
+MLS2:
+10.10.10.3
+
+✔️ Configured HSRP:
+
+standby 1 ip 10.10.10.1
+
+✔️ Assigned priorities:
+
+• MLS1 → Priority 120
+• MLS2 → Priority 100
+
+✔️ Enabled preemption for automatic role recovery
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show standby brief
+• show standby
+• show ip interface brief
+• show interfaces trunk
+
+Observed:
+
+✅ MLS1 became ACTIVE router
+✅ MLS2 entered STANDBY state
+✅ Virtual IP reachable successfully
+✅ Gateway redundancy operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Connectivity Testing:
+
+PC1:
+
+ping 10.10.10.20
+
+Result:
+
+✅ Successful replies
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Failover Simulation:
+
+Shutdown VLAN 10 interface on MLS1.
+
+Immediately observed:
+
+✅ MLS2 transitioned from STANDBY → ACTIVE
+✅ Virtual gateway remained reachable
+✅ End-user connectivity continued successfully
+
+Minimal packet loss occurred during failover convergence.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Without gateway redundancy, failure of a single Layer 3 device can disconnect an entire VLAN from the network.
+
+HSRP solves this by providing:
+
+• High availability
+• Transparent failover
+• Continuous default gateway access
+• Reduced downtime during outages
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Relevance:
+
+HSRP is heavily used in:
+
+• Campus core networks
+• Enterprise distribution layers
+• Datacenter aggregation
+• Critical business environments
+• High-availability LAN architectures
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+This lab improved my understanding of:
+
+• First-hop redundancy protocols
+• Active/Standby elections
+• Virtual IP operation
+• Failover behavior
+• Enterprise gateway design
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST8
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #HSRP #Cisco #Networking #Switching #Redundancy #HighAvailability #EnterpriseNetworking #Infrastructure #Datacenter #NetworkEngineer #LearningInPublic
+

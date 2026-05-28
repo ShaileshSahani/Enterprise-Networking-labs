@@ -1,0 +1,261 @@
+LAB 07 — VLAN HOPPING ATTACK & MITIGATION
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Demonstrate VLAN hopping vulnerability using DTP and native VLAN weaknesses.
+
+Verify:
+
+DTP auto-negotiation risk
+Double-tagged VLAN hopping
+Native VLAN vulnerability
+
+Secure the switch using:
+
+Access mode
+Nonegotiate
+Unused native VLAN
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+           TRUNK LINK
+
+      SW1 ================= SW2
+       |                     |
+       |                     |
+   Attacker-PC            Victim-PC
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+
+Device	Role
+SW1	Access Switch
+SW2	Distribution Switch
+Attacker-PC	Malicious Host
+Victim-PC	Target Host
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+
+Device	Interface	IP Address
+Attacker-PC	NIC	10.10.10.100/24
+Victim-PC	NIC	10.20.20.100/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN PLAN
+
+VLAN	Purpose
+10	USERS
+20	SERVERS
+999	NATIVE_BLACKHOLE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+
+Device	Interface	Connected To
+SW1	F0/1	Attacker-PC
+SW1	G0/1	SW2 G0/1
+SW2	F0/1	Victim-PC
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — INITIAL VULNERABLE CONFIGURATION
+
+SW1
+
+enable
+configure terminal
+
+hostname SW1
+no ip domain-lookup
+
+vlan 10
+ name USERS
+
+vlan 20
+ name SERVERS
+
+interface f0/1
+ switchport mode dynamic auto
+ no shutdown
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+enable
+configure terminal
+
+hostname SW2
+no ip domain-lookup
+
+vlan 10
+ name USERS
+
+vlan 20
+ name SERVERS
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — VERIFY DTP STATUS
+
+show dtp interface f0/1
+show interfaces trunk
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3 — ATTACK SIMULATION
+
+Attacker sends:
+
+Double-tagged 802.1Q frames
+Outer tag = Native VLAN
+Inner tag = VLAN 20
+
+Result:
+
+SW1 strips first tag
+SW2 forwards based on second tag
+Traffic reaches VLAN 20
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — SECURE THE ACCESS PORT
+
+SW1
+
+configure terminal
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ switchport nonegotiate
+ spanning-tree portfast
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 5 — CHANGE NATIVE VLAN
+
+SW1
+
+configure terminal
+
+vlan 999
+ name NATIVE_BLACKHOLE
+
+interface g0/1
+ switchport trunk native vlan 999
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+configure terminal
+
+vlan 999
+ name NATIVE_BLACKHOLE
+
+interface g0/1
+ switchport trunk native vlan 999
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 6 — VERIFY SECURITY
+
+show interfaces trunk
+show interfaces switchport
+show vlan brief
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+
+ISSUE:
+Port still negotiating trunk
+
+CHECK:
+
+show dtp interface f0/1
+
+FIX:
+
+interface f0/1
+ switchport nonegotiate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+Native VLAN mismatch
+
+CHECK:
+
+show interfaces trunk
+
+VERIFY:
+
+Native VLAN 999 configured on both sides
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+VLAN hopping still possible
+
+VERIFY:
+
+Access ports not using dynamic auto
+DTP disabled
+Native VLAN unused
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL TEST
+
+Attempt VLAN hopping attack again.
+
+Expected Result:
+
+Attack fails
+Access port cannot negotiate trunk
+VLAN isolation
+

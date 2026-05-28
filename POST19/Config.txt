@@ -1,0 +1,233 @@
+BGP COMMUNICATION LAB
+
+
+You will learn:
+
+OSPF neighbor formation
+BGP peering
+Route redistribution
+End-to-end communication
+Enterprise edge design
+
+
+TOPOLOGY
+PC1 ---- R1 ---- CORE ---- R2 ---- PC2
+         OSPF     BGP      BGP
+         
+HOW IT WORKS
+DEVICE	ROLE
+R1	OSPF Router
+CORE	Redistribution Router
+R2	BGP Router
+CORE	Connects OSPF ↔ BGP
+
+
+IP ADDRESSING
+LAN NETWORKS
+DEVICE	IP
+PC1	192.168.1.10/24
+R1 G0/0	192.168.1.1/24
+PC2	192.168.2.10/24
+R2 G0/0	192.168.2.1/24
+
+
+WAN LINKS
+LINK	NETWORK
+R1 ↔ CORE	10.10.10.0/30
+CORE ↔ R2	20.20.20.0/30
+
+
+INTERFACE MAPPING
+DEVICE	INTERFACE	IP
+R1	G0/0	192.168.1.1
+R1	G0/1	10.10.10.1
+CORE	G0/0	10.10.10.2
+CORE	G0/1	20.20.20.1
+R2	G0/1	20.20.20.2
+R2	G0/0	192.168.2.1
+
+
+PC CONFIGURATION
+
+PC1
+IP: 192.168.1.10
+MASK: 255.255.255.0
+GATEWAY: 192.168.1.1
+
+PC2
+IP: 192.168.2.10
+MASK: 255.255.255.0
+GATEWAY: 192.168.2.1
+
+
+R1 CONFIGURATION (OSPF)
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 10.10.10.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 1.1.1.1
+
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+
+end
+wr
+
+
+
+CORE CONFIGURATION (OSPF + BGP)
+enable
+conf t
+
+hostname CORE
+
+interface g0/0
+ ip address 10.10.10.2 255.255.255.252
+ no shutdown
+
+interface g0/1
+ ip address 20.20.20.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+
+ network 10.10.10.0 0.0.0.3 area 0
+
+ redistribute bgp 65000 subnets
+
+router bgp 65000
+
+ neighbor 20.20.20.2 remote-as 65001
+
+ network 20.20.20.0 mask 255.255.255.252
+
+ redistribute ospf 1
+
+end
+wr
+
+
+
+R2 CONFIGURATION (BGP)
+enable
+conf t
+
+hostname R2
+
+interface g0/0
+ ip address 192.168.2.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 20.20.20.2 255.255.255.252
+ no shutdown
+
+router bgp 65001
+
+ neighbor 20.20.20.1 remote-as 65000
+
+ network 192.168.2.0 mask 255.255.255.0
+
+end
+wr
+
+
+
+
+WHAT HAPPENS HERE
+OSPF SIDE
+
+R1 advertises:
+
+192.168.1.0/24
+
+to CORE using OSPF.
+
+CORE REDISTRIBUTES
+
+CORE injects OSPF routes into BGP:
+
+redistribute ospf 1
+
+Now R2 learns:
+
+192.168.1.0/24
+
+through BGP.
+
+BGP SIDE
+
+R2 advertises:
+
+192.168.2.0/24
+
+to CORE.
+
+CORE redistributes BGP into OSPF:
+
+redistribute bgp 65000 subnets
+
+Now R1 learns:
+
+192.168.2.0/24
+
+through OSPF.
+
+RESULT
+
+PC1 and PC2 can now communicate.
+
+VERIFICATION
+CHECK OSPF
+
+On CORE:
+
+show ip ospf neighbor
+
+Expected:
+
+FULL state with R1
+CHECK BGP
+
+On CORE:
+
+show ip bgp summary
+
+Expected:
+
+Established state
+CHECK ROUTES
+
+On R1:
+
+show ip route
+
+You should see:
+
+O E2 192.168.2.0/24
+
+On R2:
+
+show ip route
+
+You should see:
+
+B 192.168.1.0/24
+FINAL TEST
+
+From PC1:
+
+ping 192.168.2.10
+
+SUCCESS = Redistribution working.

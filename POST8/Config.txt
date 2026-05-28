@@ -1,0 +1,454 @@
+LAB 08 — HSRP (HOT STANDBY ROUTER PROTOCOL)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Configure HSRP using two Multilayer Switches.
+
+Demonstrate:
+
+Gateway redundancy
+Active/Standby election
+Virtual IP gateway
+Failover during device outage
+Continuous user connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ENTERPRISE TOPOLOGY
+
+      MLS1 -------- MLS2
+        |              |
+        |              |
+        +------SW1-----+
+               |
+          +----+----+
+          |         |
+         PC1       PC2
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOW HSRP WORKS
+
+MLS1 = ACTIVE ROUTER
+Handles all gateway traffic
+
+MLS2 = STANDBY ROUTER
+Waits silently
+
+If MLS1 fails:
+MLS2 automatically becomes ACTIVE
+
+PCs continue using SAME gateway:
+10.10.10.1
+
+NO gateway change needed on clients.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+Device	Role
+MLS1	Active HSRP Router
+MLS2	Standby HSRP Router
+SW1	Access Switch
+PC1	User Device
+PC2	User Device
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+Device	Interface	IP Address
+MLS1	VLAN10	10.10.10.2/24
+MLS2	VLAN10	10.10.10.3/24
+HSRP VIP	Virtual IP	10.10.10.1
+PC1	NIC	10.10.10.10/24
+PC2	NIC	10.10.10.20/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFAULT GATEWAY
+Device	Gateway
+PC1	10.10.10.1
+PC2	10.10.10.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+Device	Interface	Connected To
+MLS1	G0/1	SW1 G0/1
+MLS2	G0/1	SW1 G0/2
+SW1	F0/1	PC1
+SW1	F0/2	PC2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — CONFIGURE VLAN 10
+
+MLS1
+
+enable
+configure terminal
+
+hostname MLS1
+
+vlan 10
+ name USERS
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MLS2
+
+enable
+configure terminal
+
+hostname MLS2
+
+vlan 10
+ name USERS
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW1
+
+enable
+configure terminal
+
+hostname SW1
+
+vlan 10
+ name USERS
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — CONFIGURE TRUNK LINKS
+
+MLS1
+
+configure terminal
+
+interface g0/1
+
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MLS2
+
+configure terminal
+
+interface g0/1
+
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW1
+
+configure terminal
+
+interface range g0/1 - 2
+
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3 — CONFIGURE ACCESS PORTS
+
+SW1
+
+configure terminal
+
+interface f0/1
+
+ switchport mode access
+ switchport access vlan 10
+
+ spanning-tree portfast
+
+ no shutdown
+
+interface f0/2
+
+ switchport mode access
+ switchport access vlan 10
+
+ spanning-tree portfast
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — ENABLE L3 ROUTING
+
+MLS1
+
+configure terminal
+
+ip routing
+
+end
+write memory
+
+MLS2
+
+configure terminal
+
+ip routing
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 5 — CONFIGURE SVI + HSRP
+
+MLS1
+
+configure terminal
+
+interface vlan 10
+
+ ip address 10.10.10.2 255.255.255.0
+
+ standby 1 ip 10.10.10.1
+
+ standby 1 priority 120
+
+ standby 1 preempt
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MLS2
+
+configure terminal
+
+interface vlan 10
+
+ ip address 10.10.10.3 255.255.255.0
+
+ standby 1 ip 10.10.10.1
+
+ standby 1 priority 100
+
+ standby 1 preempt
+
+ no shutdown
+
+end
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 6 — CONFIGURE PCs
+
+PC1
+
+IP Address: 10.10.10.10
+Subnet Mask: 255.255.255.0
+Default Gateway: 10.10.10.1
+
+PC2
+
+IP Address: 10.10.10.20
+Subnet Mask: 255.255.255.0
+Default Gateway: 10.10.10.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION COMMANDS
+
+MLS1
+
+show standby brief
+
+show standby
+
+show ip interface brief
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED OUTPUT
+
+Interface   Grp  Pri  State    Active          Standby         Virtual IP
+Vl10        1    120  Active   local           10.10.10.3     10.10.10.1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MLS2
+
+
+Interface   Grp  Pri  State    Active          Standby         Virtual IP
+Vl10        1    100  Standby  10.10.10.2     local           10.10.10.1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONNECTIVITY TEST
+
+PC1
+
+ping 10.10.10.20
+
+EXPECTED RESULT:
+
+SUCCESS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FAILOVER TEST
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — SHUTDOWN ACTIVE MLS
+
+MLS1
+
+configure terminal
+
+interface vlan 10
+
+ shutdown
+
+end
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED RESULT
+
+MLS2 automatically becomes ACTIVE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY FAILOVER
+
+MLS2
+
+show standby brief
+
+EXPECTED OUTPUT:
+
+
+Interface   Grp  Pri  State    Active   Standby   Virtual IP
+Vl10        1    100  Active   local              10.10.10.1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST CONNECTIVITY DURING FAILURE
+
+PC1
+
+ping 10.10.10.20
+
+EXPECTED RESULT:
+
+SUCCESS
+
+Minimal packet loss may occur during failover.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+
+HSRP not forming
+
+CHECK:
+
+show standby brief
+
+VERIFY:
+
+Same standby group number
+Same virtual IP
+VLAN interface up/up
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+
+Wrong ACTIVE router
+
+CHECK:
+
+show standby
+
+VERIFY:
+
+standby 1 priority 120
+
+Higher priority wins.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+
+Original ACTIVE router not taking back control
+
+VERIFY:
+
+standby 1 preempt
+
+Without preempt:
+
+recovered router stays standby
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL VERIFICATION
+show standby brief
+show ip interface brief
+show interfaces trunk
+
+EXPECTED RESULT:
+
+HSRP Active/Standby operational
+Virtual IP reachable
+Automatic failover working
+Stable gateway redundancy
+Continuous client connectivity

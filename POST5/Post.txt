@@ -1,0 +1,161 @@
+🔧 Lab 05/50 — EtherChannel Mismatch Catastrophe
+
+Built an enterprise Layer 2 troubleshooting lab today focused on one of the most frustrating switching failures in production environments:
+
+🔥 EtherChannel Negotiation Mismatch
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Create a broken EtherChannel between two Cisco switches and observe how improper negotiation impacts:
+
+• Port-channel formation
+• STP stability
+• Interface states
+• MAC address learning
+• Overall Layer 2 behavior
+
+Then recover the topology using proper LACP configuration.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• Dual uplinks between SW1 and SW2
+• VLAN 10 trunked across both switches
+• PC1 connected to SW1
+• PC2 connected to SW2
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Failure Scenario Created:
+
+SW1 configured using:
+
+PAgP desirable
+
+SW2 configured using:
+
+mode on
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Result:
+
+❌ EtherChannel failed to form correctly
+❌ Interfaces entered suspended state
+❌ STP recalculated topology repeatedly
+❌ MAC address instability observed
+❌ Syslog errors generated continuously
+
+This is exactly the type of Layer 2 issue that creates random packet loss and unstable forwarding behavior in enterprise networks.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show etherchannel summary
+• show interfaces trunk
+• show spanning-tree vlan 10
+• show logging
+
+Observed classic output:
+
+Po1(SD)
+Gi0/1(s)
+Gi0/2(s)
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Debugging Performed:
+
+• debug pagp events
+• debug etherchannel
+• debug spanning-tree events
+
+Observed negotiation failures and channel inconsistencies during bundle formation.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Recovery Phase:
+
+Removed the broken configuration completely and rebuilt the topology using:
+
+LACP active/active
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+After Correction:
+
+✅ Stable EtherChannel formed
+✅ Both links bundled successfully
+✅ No suspended interfaces
+✅ STP stabilized immediately
+✅ End-to-end connectivity restored
+
+Verified using:
+
+• show etherchannel summary
+• show lacp neighbor
+• show interfaces port-channel 1
+• show spanning-tree vlan 10
+
+Final healthy state:
+
+Po1(SU)
+Gi0/1(P)
+Gi0/2(P)
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Most tutorials explain EtherChannel as:
+
+“Combine links for more bandwidth.”
+
+This lab focused on what actually happens when negotiation protocols do NOT match.
+
+Real enterprise troubleshooting is not about memorizing commands —
+it is about understanding protocol behavior during failure conditions.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Relevance:
+
+These problems commonly occur during:
+
+• Switch migrations
+• Datacenter expansions
+• Mixed vendor deployments
+• Inconsistent template usage
+• Manual interface configuration
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+
+• Full topology
+• Interface mapping
+• Broken configuration
+• Debug outputs
+• Verification commands
+• Recovery procedure
+• Working LACP setup
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST5
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #EtherChannel #LACP #PAgP #STP #Networking #NetworkEngineer #Switching #Infrastructure #Homelab #LearningInPublic
+

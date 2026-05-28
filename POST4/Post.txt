@@ -1,0 +1,131 @@
+🔧 Lab 04/50 — SSH Login to Layer 2 Switch
+
+Built a foundational enterprise management lab today focused on secure remote administration of a Cisco Layer 2 switch using SSH.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure and verify secure SSH remote access to a Cisco switch.
+
+Validated:
+
+• Console access
+• SSH remote login
+• VLAN management connectivity
+• Local authentication
+• SSH Version 2 operation
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• PC1 connected to S1 console port
+• PC1 connected to S1 G0/1 using straight-through cable
+• VLAN 99 used as management VLAN
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Created dedicated management VLAN
+• Configured SVI interface with IP addressing
+• Assigned switch access port to VLAN 99
+• Configured local username authentication
+• Generated RSA encryption keys
+• Enabled SSH Version 2
+• Restricted VTY access to SSH only
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Management IP Addressing:
+
+• S1 VLAN 99 → 192.168.99.2/24
+• PC1 → 192.168.99.10/24
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ Connectivity testing using:
+
+ping 192.168.99.2
+
+✔️ SSH remote login testing using:
+
+ssh -l admin 192.168.99.2
+
+✔️ Verified:
+
+• SSH status
+• Active VTY configuration
+• VLAN assignment
+• SVI interface state
+• Running configuration
+
+Commands used:
+
+• show ip ssh
+• show ssh
+• show ip interface brief
+• show vlan brief
+• show running-config | section vty
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Practiced:
+
+• VLAN interface down state
+• Incorrect VLAN assignment
+• Missing RSA keys
+• SSH login refusal
+• VTY transport configuration errors
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+SSH configuration on Layer 2 switches is one of the most important foundational skills in enterprise networking.
+
+This lab reinforced how management-plane connectivity depends on:
+
+• Proper VLAN configuration
+• Active SVI interfaces
+• Correct VTY settings
+• RSA key generation
+• Authentication configuration
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Almost every enterprise switch in production is managed remotely through SSH.
+
+A small configuration mistake can completely block administrative access to critical infrastructure devices.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+
+• Full topology
+• Interface mapping
+• Complete switch configuration
+• SSH setup process
+• Verification commands
+• Troubleshooting scenarios
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST4
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #SSH #Switching #Networking #NetworkEngineer #CyberSecurity #Homelab #Infrastructure #LearningInPublic
+

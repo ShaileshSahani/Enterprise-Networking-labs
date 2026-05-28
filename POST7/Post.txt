@@ -1,0 +1,152 @@
+🔧 Lab 07/50 — VLAN Hopping Attack & Mitigation
+
+Built a Layer 2 security lab today focused on one of the most overlooked switch vulnerabilities in enterprise environments:
+
+🔥 VLAN Hopping Attack using DTP & Native VLAN Weaknesses
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Demonstrate how improper trunk configuration and native VLAN misuse can allow traffic to bypass VLAN isolation.
+
+Then secure the environment using proper switch hardening techniques.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• SW1 connected to SW2 over trunk link
+• Attacker-PC connected to SW1
+• Victim-PC connected to SW2
+
+VLAN Structure:
+
+• VLAN 10 → USERS
+• VLAN 20 → SERVERS
+• VLAN 999 → Native Blackhole VLAN
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1 — Vulnerable Configuration
+
+Configured access port using:
+
+switchport mode dynamic auto
+
+Result:
+
+• DTP negotiation remained enabled
+• Trunk negotiation became possible
+• Switch vulnerable to VLAN hopping techniques
+
+Verified using:
+
+• show dtp interface
+• show interfaces trunk
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Attack Simulation:
+
+Simulated double-tagged 802.1Q frames:
+
+• Outer tag → Native VLAN
+• Inner tag → Target VLAN 20
+
+Observed behavior:
+
+• First switch stripped native VLAN tag
+• Second switch forwarded traffic using inner VLAN tag
+• Traffic reached protected VLAN 20
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Why This Matters:
+
+The attack succeeded WITHOUT direct Layer 3 routing access.
+
+This demonstrates how poor Layer 2 security design can bypass VLAN segmentation entirely.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 2 — Security Hardening
+
+Secured the environment using:
+
+✔️ Access mode enforcement
+✔️ switchport nonegotiate
+✔️ Dedicated unused native VLAN
+✔️ PortFast on access interfaces
+
+Changed native VLAN to:
+
+VLAN 999 → NATIVE_BLACKHOLE
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show interfaces trunk
+• show interfaces switchport
+• show vlan brief
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Final Result:
+
+✅ DTP negotiation disabled
+✅ Access ports prevented trunk formation
+✅ Native VLAN attack path removed
+✅ VLAN hopping attack failed successfully
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+VLANs alone do NOT guarantee security.
+
+Enterprise switch security depends heavily on:
+
+• DTP control
+• Native VLAN management
+• Proper trunk configuration
+• Access port hardening
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Enterprise Relevance:
+
+These vulnerabilities are commonly exploited in:
+
+• Misconfigured campus networks
+• Legacy enterprise switches
+• Poorly secured access layers
+• Networks using default switch settings
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+
+• Full topology
+• Vulnerable configuration
+• Attack simulation
+• Mitigation techniques
+• Verification commands
+• Security hardening process
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST7
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #CyberSecurity #VLAN #Switching #Networking #NetworkSecurity #Infrastructure #Datacenter #Homelab #LearningInPublic
+

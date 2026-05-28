@@ -1,0 +1,151 @@
+🔧 Lab 06/50 — Inter-VLAN Routing Using SVI
+
+Built a Layer 3 switching lab today focused on one of the most important enterprise networking concepts:
+
+🔥 Inter-VLAN Routing using SVIs on a Multilayer Switch
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Configure inter-VLAN communication using a Cisco Layer 3 switch with Switch Virtual Interfaces (SVIs).
+
+Validated:
+
+• VLAN segmentation
+• Trunk communication
+• SVI gateway routing
+• Inter-VLAN connectivity
+• Layer 3 switching behavior
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• MLS1 acting as the Layer 3 core switch
+• SW1 connected to VLAN 10
+• SW2 connected to VLAN 20
+• Trunk uplinks between access switches and multilayer switch
+
+Network Design:
+
+• VLAN 10 → HR → 10.10.10.0/24
+• VLAN 20 → SALES → 20.20.20.0/24
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Performed:
+
+On the multilayer switch:
+
+✔️ Enabled Layer 3 routing using:
+
+ip routing
+
+✔️ Created SVIs:
+
+• Interface VLAN 10 → 10.10.10.1
+• Interface VLAN 20 → 20.20.20.1
+
+✔️ Configured trunk uplinks toward both access switches
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Access Layer Configuration:
+
+SW1:
+
+• Access port assigned to VLAN 10
+• Trunk uplink toward MLS1
+
+SW2:
+
+• Access port assigned to VLAN 20
+• Trunk uplink toward MLS1
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show vlan brief
+• show ip interface brief
+• show interfaces trunk
+• show ip route
+
+Observed:
+
+✅ VLANs operational
+✅ SVIs in UP/UP state
+✅ Connected routes installed automatically
+✅ Trunk interfaces forwarding correctly
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Connectivity Testing:
+
+PC1 → 10.10.10.10
+PC2 → 20.20.20.10
+
+Tested:
+
+ping 20.20.20.10
+
+Result:
+
+✅ Successful inter-VLAN communication
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Practiced:
+
+• Missing ip routing command
+• SVI interfaces administratively down
+• Trunk misconfiguration
+• Incorrect VLAN assignments
+• Missing default gateways
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Without Layer 3 routing, VLANs remain isolated broadcast domains.
+
+SVIs allow a multilayer switch to perform routing directly in hardware, making inter-VLAN communication significantly faster than traditional router-on-a-stick designs.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Relevance:
+
+This design is heavily used in:
+
+• Campus networks
+• Enterprise LANs
+• Datacenter access layers
+• High-performance switching environments
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+
+• Full topology
+• VLAN design
+• Interface mapping
+• Complete switch configurations
+• Verification commands
+• Troubleshooting scenarios
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST6
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #SVI #InterVLANRouting #Layer3Switching #Networking #NetworkEngineer #Infrastructure #Datacenter #Homelab #LearningInPublic
+

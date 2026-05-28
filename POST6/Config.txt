@@ -1,0 +1,292 @@
+LAB 06 — INTER-VLAN ROUTING USING SVI
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Configure inter-VLAN routing using a Layer 3 switch with SVIs.
+
+Verify:
+
+VLAN segmentation
+Trunk communication
+SVI gateway routing
+Inter-VLAN connectivity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOPOLOGY
+
+                                   MULTILAYER SWITCH
+                              ┌──────────────────────┐
+                              │         MLS1         │
+                              │----------------------│
+                              │ G0/1         G0/2    │
+                              └──────┬────────┬──────┘
+                                     │        │
+                                     │        │
+                           TRUNK     │        │    TRUNK
+                                     │        │
+                                     │        │
+
+                    ┌────────────────┘        └────────────────┐
+                    │                                          │
+
+             ┌───────────────┐                         ┌───────────────┐
+             │      SW1      │                         │      SW2      │
+             │---------------│                         │---------------│
+             │ G0/1   F0/1   │                         │ G0/1   F0/1   │
+             └────┬─────┬────┘                         └────┬─────┬────┘
+                  │     │                                     │     │
+                  │     │                                     │     │
+                  │     │                                     │     │
+                  │   ACCESS                                ACCESS  │
+                  │   VLAN 10                               VLAN 20 │
+                  │                                                 │
+              ┌───┘                                                 └───┐
+              │                                                           │
+
+           ┌───────┐                                                ┌───────┐
+           │  PC1  │                                                │  PC2  │
+           └───────┘                                                └───────┘
+
+
+                 VLAN 10 NETWORK                  VLAN 20 NETWORK
+                   10.10.10.0/24                   20.20.20.0/24
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+
+Device	Role
+SW1	Layer 2 Access Switch
+SW2	Layer 2 Access Switch
+MLS1	Layer 3 Multilayer Switch
+PC1	VLAN 10 Host
+PC2	VLAN 20 Host
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN PLAN
+
+VLAN	Name	Gateway
+10	HR	10.10.10.1
+20	SALES	20.20.20.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+
+Device	VLAN	IP Address
+PC1	VLAN 10	10.10.10.10/24
+PC2	VLAN 20	20.20.20.10/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+
+Device	Interface	Connected To
+SW1	G0/1	MLS1 G0/1
+SW2	G0/1	MLS1 G0/2
+SW1	F0/1	PC1
+SW2	F0/1	PC2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — CONFIGURE VLAN 10 ACCESS SWITCH
+
+SW1
+
+enable
+configure terminal
+
+hostname SW1
+
+vlan 10
+ name HR
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+
+interface g0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — CONFIGURE VLAN 20 ACCESS SWITCH
+
+SW2
+
+enable
+configure terminal
+
+hostname SW2
+
+vlan 20
+ name SALES
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+
+interface g0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 20
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3 — CONFIGURE MULTILAYER SWITCH
+
+MLS1
+
+enable
+configure terminal
+
+hostname MLS1
+
+ip routing
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+interface vlan 10
+ ip address 10.10.10.1 255.255.255.0
+ no shutdown
+
+interface vlan 20
+ ip address 20.20.20.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+interface g0/2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 20
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — PC CONFIGURATION
+
+PC1
+
+IP Address: 10.10.10.10
+Subnet Mask: 255.255.255.0
+Default Gateway: 10.10.10.1
+
+PC2
+
+IP Address: 20.20.20.10
+Subnet Mask: 255.255.255.0
+Default Gateway: 20.20.20.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 5 — VERIFICATION
+
+MLS1
+
+show vlan brief
+show ip interface brief
+show interfaces trunk
+show ip route
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONNECTIVITY TEST
+
+PC1
+
+ping 20.20.20.10
+
+Expected:
+Successful replies.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+
+ISSUE:
+Inter-VLAN routing not working
+
+CHECK:
+
+show ip route
+
+FIX:
+
+configure terminal
+ip routing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+SVI interface down
+
+CHECK:
+
+show ip interface brief
+
+FIX:
+
+interface vlan 10
+ no shutdown
+
+interface vlan 20
+ no shutdown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+Trunk failure
+
+CHECK:
+
+show interfaces trunk
+
+FIX:
+
+interface g0/1
+ switchport mode trunk
+
+interface g0/2
+ switchport mode trunk
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL TEST
+
+show ip route
+show vlan brief
+show interfaces trunk
+
+Expected Result:
+
+VLAN 10 operational
+VLAN 20 operational
+SVIs routing traffic
+Successful inter-VLAN communication

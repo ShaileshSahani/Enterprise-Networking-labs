@@ -1,0 +1,347 @@
+LAB 05 — ETHERCHANNEL MISMATCH CATASTROPHE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Create an EtherChannel negotiation mismatch between two switches.
+
+Observe:
+
+Port-channel failure
+STP instability
+Suspended interfaces
+Syslog errors
+MAC flapping
+
+Fix using:
+
+Proper LACP configuration
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+                    PORT-CHANNEL LINKS
+
+            SW1 ========================== SW2
+              ||                           ||
+              ||                           ||
+             G0/1 --------------------- G0/1
+             G0/2 --------------------- G0/2
+
+
+            PC1                           PC2
+             |                             |
+             |                             |
+            F0/1                         F0/1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+
+Device	Role
+SW1	Access Switch
+SW2	Distribution Switch
+PC1	VLAN 10 Host
+PC2	VLAN 10 Host
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN PLAN
+
+VLAN	Name
+10	USERS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+
+Device	IP Address
+PC1	10.10.10.10/24
+PC2	10.10.10.20/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+
+Device	Interface	Connected To
+SW1	G0/1	SW2 G0/1
+SW1	G0/2	SW2 G0/2
+SW1	F0/1	PC1
+SW2	F0/1	PC2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — BASE SWITCH CONFIGURATION
+
+SW1
+
+enable
+configure terminal
+
+hostname SW1
+
+vlan 10
+ name USERS
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+enable
+configure terminal
+
+hostname SW2
+
+vlan 10
+ name USERS
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — CREATE BROKEN ETHERCHANNEL
+
+SW1
+
+configure terminal
+
+interface range g0/1 - 2
+ channel-group 1 mode desirable
+
+interface port-channel 1
+ switchport mode trunk
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+configure terminal
+
+interface range g0/1 - 2
+ channel-group 1 mode on
+
+interface port-channel 1
+ switchport mode trunk
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED FAILURE
+
+EtherChannel does not form correctly
+Interfaces become suspended
+STP recalculates topology
+MAC address instability occurs
+Syslog errors generated
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION
+
+show etherchannel summary
+show interfaces trunk
+show spanning-tree vlan 10
+show logging
+
+Possible Output:
+
+Group  Port-channel  Protocol    Ports
+1      Po1(SD)         PAgP      Gi0/1(s) Gi0/2(s)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPTIONAL DEBUG
+
+debug pagp events
+debug etherchannel
+debug spanning-tree events
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3 — REMOVE BROKEN CONFIGURATION
+
+SW1
+
+configure terminal
+
+default interface range g0/1 - 2
+no interface port-channel 1
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+configure terminal
+
+default interface range g0/1 - 2
+no interface port-channel 1
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — CONFIGURE CORRECT LACP
+
+SW1
+
+configure terminal
+
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ channel-group 1 mode active
+
+interface port-channel 1
+ switchport mode trunk
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2
+
+configure terminal
+
+interface range g0/1 - 2
+ switchport mode trunk
+ switchport trunk allowed vlan 10
+ channel-group 1 mode active
+
+interface port-channel 1
+ switchport mode trunk
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL VERIFICATION
+
+show etherchannel summary
+show lacp neighbor
+show interfaces port-channel 1
+show spanning-tree vlan 10
+
+Expected Output:
+
+Group  Port-channel  Protocol    Ports
+1      Po1(SU)        LACP       Gi0/1(P) Gi0/2(P)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONNECTIVITY TEST
+
+PC1
+
+ping 10.10.10.20
+
+Expected:
+Successful replies.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+
+ISSUE:
+Interfaces suspended
+
+CHECK:
+
+show etherchannel summary
+
+VERIFY:
+
+Matching negotiation protocol
+Matching trunk settings
+Same VLAN configuration
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+Port-channel not forming
+
+CHECK:
+
+show run interface g0/1
+show run interface g0/2
+
+VERIFY:
+
+Same speed/duplex
+Same trunk mode
+Same allowed VLANs
+Same channel-group mode
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+STP instability
+
+CHECK:
+
+show spanning-tree vlan 10
+
+VERIFY:
+
+Port-channel operational
+Physical links bundled correctly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL TEST
+
+show etherchannel summary
+show lacp neighbor
+show interfaces trunk
+
+Expected Result:
+
+Stable EtherChannel
+Both links bundled
+No suspended interfaces
+Stable STP topology
+End-to-end connectivity working
