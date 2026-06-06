@@ -1,0 +1,129 @@
+🔧 Lab 10/50 — Port Security Violation Modes
+
+Built a Layer 2 security lab today focused on understanding how Cisco switches react when an unauthorized device connects to a secured access port.
+
+🔥 Port Security Violation Modes
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Compare the behavior of all three port-security violation modes:
+
+• Protect
+• Restrict
+• Shutdown
+
+And observe what happens when a different device attempts to use a secured switch port.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Setup:
+
+• SW1 Fa0/1 configured with Port Security
+• Maximum MAC addresses: 1
+• Sticky MAC learning enabled
+
+PC1 was connected first to learn the authorized MAC address.
+
+Then PC1 was disconnected and replaced with PC2 to trigger violations.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Test 1 — Protect Mode
+
+Configured:
+
+switchport port-security violation protect
+
+Result:
+
+✅ Unauthorized traffic dropped
+✅ Port remained UP
+✅ No logs generated
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Test 2 — Restrict Mode
+
+Configured:
+
+switchport port-security violation restrict
+
+Result:
+
+✅ Unauthorized traffic dropped
+✅ Violation counter increased
+✅ Syslog messages generated
+✅ Port remained operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Test 3 — Shutdown Mode
+
+Configured:
+
+switchport port-security violation shutdown
+
+Result:
+
+✅ Unauthorized traffic dropped
+✅ Syslog alerts generated
+✅ Interface entered err-disabled state
+✅ Manual recovery required
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show port-security interface fa0/1
+• show interfaces status
+• show logging
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Summary:
+
+| Mode     | Traffic Dropped | Syslog | Port Shutdown |
+| -------- | --------------- | ------ | ------------- |
+| Protect  | Yes             | No     | No            |
+| Restrict | Yes             | Yes    | No            |
+| Shutdown | Yes             | Yes    | Yes           |
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+All three modes block unauthorized devices, but the response is very different.
+
+• Protect = Silent protection
+• Restrict = Protection + visibility
+• Shutdown = Maximum security
+
+Understanding when to use each mode is critical in enterprise access-layer security.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+
+• Full topology
+• Port security configuration
+• Violation testing scenarios
+• Verification commands
+• Security comparison analysis
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST10
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #PortSecurity #NetworkSecurity #Switching #Networking #Infrastructure #CyberSecurity #NetworkEngineer #LearningInPublic
+

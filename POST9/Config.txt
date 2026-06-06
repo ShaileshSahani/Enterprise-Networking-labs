@@ -1,0 +1,341 @@
+LAB 09 — VTP (VLAN TRUNKING PROTOCOL)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Configure VTP and understand how VLAN information is automatically distributed across switches.
+
+Demonstrate:
+
+VTP Server
+VTP Client
+VTP Domain
+VLAN Propagation
+Revision Number
+VTP Synchronization
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+          SW1 (VTP SERVER)
+                 |
+                 |
+              TRUNK
+                 |
+                 |
+          SW2 (VTP CLIENT)
+                 |
+                 |
+              TRUNK
+                 |
+                 |
+          SW3 (VTP CLIENT)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAB SCENARIO
+
+Without VTP:
+
+
+Create VLAN 10 on SW1
+Create VLAN 10 on SW2
+Create VLAN 10 on SW3
+
+Manual work
+
+
+With VTP:
+
+
+Create VLAN 10 on SW1
+
+Automatically appears on:
+SW2
+SW3
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+Device	Role
+SW1	VTP Server
+SW2	VTP Client
+SW3	VTP Client
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+Device	Interface	Connected To
+SW1 G0/1	SW2 G0/1	
+SW2 G0/2	SW3 G0/1	
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1 — CONFIGURE TRUNKS
+
+SW1
+
+interface g0/1
+
+ switchport mode trunk
+
+ no shutdown
+
+SW2
+
+interface range g0/1 - 2
+
+ switchport mode trunk
+
+ no shutdown
+
+SW3
+
+interface g0/1
+
+ switchport mode trunk
+
+ no shutdown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2 — CONFIGURE VTP DOMAIN
+
+SW1
+
+configure terminal
+
+vtp domain CAMPUS
+
+vtp mode server
+
+end
+
+SW2
+
+configure terminal
+
+vtp domain CAMPUS
+
+vtp mode client
+
+end
+
+SW3
+
+configure terminal
+
+vtp domain CAMPUS
+
+vtp mode client
+
+end
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY VTP
+show vtp status
+
+Expected:
+
+
+VTP Domain Name : CAMPUS
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3 — CREATE VLAN ON SERVER
+
+SW1
+
+configure terminal
+
+vlan 10
+ name USERS
+
+vlan 20
+ name SERVERS
+
+end
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY VLAN PROPAGATION
+
+SW2
+
+show vlan brief
+
+Expected:
+
+
+10 USERS
+
+20 SERVERS
+
+
+SW3
+
+show vlan brief
+
+Expected:
+
+
+10 USERS
+
+20 SERVERS
+
+
+No VLAN creation performed locally.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY REVISION NUMBER
+
+SW1
+
+show vtp status
+
+Expected:
+
+
+Configuration Revision : 2
+
+
+Revision increases when VLAN database changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — CREATE NEW VLAN
+
+SW1
+
+vlan 30
+ name VOICE
+
+Verify:
+
+show vlan brief
+
+On all switches:
+
+
+10 USERS
+
+20 SERVERS
+
+30 VOICE
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VTP TROUBLESHOOTING
+VLANs Not Synchronizing
+
+Check:
+
+show vtp status
+
+Verify:
+
+
+Same Domain Name
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Trunk Not Working
+
+Check:
+
+show interfaces trunk
+
+Expected:
+
+
+Trunking Enabled
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Client Not Receiving VLANs
+
+Verify:
+
+show vtp status
+
+Check:
+
+
+VTP Version
+
+Domain Name
+
+Revision Number
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DANGEROUS VTP SCENARIO
+
+Imagine:
+
+
+Old Switch
+
+Revision Number = 50
+
+Production Network
+
+Revision Number = 10
+
+
+When connected:
+
+
+Revision 50 Wins
+
+Production VLAN Database Overwritten
+
+Network Outage
+
+
+This is why many enterprises run:
+
+vtp mode transparent
+
+instead of Server/Client mode.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL VERIFICATION
+show vtp status
+
+show vlan brief
+
+show interfaces trunk
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED RESULT
+VLANs created on SW1
+VLANs automatically learned by SW2 and SW3
+Revision number increases
+No manual VLAN creation on clients
+Successful VTP synchronization
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY TAKEAWAYS
+VTP distributes VLAN information.
+Server creates/modifies VLANs.
+Clients receive VLAN updates.
+VTP requires trunk links.
+Domain names must match.
+Revision numbers determine database updates.
+Mismanaged VTP can cause major outages.
+Many modern enterprises prefer VTP Transparent Mode for safety.

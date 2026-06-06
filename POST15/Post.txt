@@ -1,0 +1,171 @@
+🔧 Lab 15/50 — Static NAT + Dynamic NAT (Enterprise-Style)
+
+Built an enterprise NAT lab today focused on understanding the difference between Static NAT and Dynamic NAT.
+
+🔥 Public IP Allocation & Address Translation
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective
+
+Configure:
+
+• Static NAT for critical devices
+• Dynamic NAT for internal users
+• Point-to-point transit links between routers
+• Access to a remote server network
+• End-to-end connectivity using static routing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Scenario
+
+Not every device requires the same type of Internet access.
+
+Some systems need a permanent public IP.
+
+Examples:
+
+• Web Servers
+• Application Servers
+• CCTV Systems
+• Remote Management Devices
+
+Other users simply need temporary outbound connectivity.
+
+This is where Static NAT and Dynamic NAT are used together.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Design
+
+• R1 = NAT Router
+• R2 = Server-Side Router
+• LAN1 = Static NAT Users
+• LAN2 = Dynamic NAT Users
+• Server Network behind R2
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Static NAT Configuration
+
+Configured 1:1 address mapping.
+
+Each internal device received its own dedicated public IP.
+
+Result:
+
+• Same public IP every time
+• Predictable connectivity
+• Easy external access
+
+Perfect for business-critical devices.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Dynamic NAT Configuration
+
+Created a NAT pool containing multiple public addresses.
+
+Internal users from LAN2 dynamically borrowed available addresses from the pool.
+
+Result:
+
+• Public IP assigned only when needed
+• Efficient address utilization
+• Automatic allocation and release
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Routing Configuration
+
+Configured static routes between routers.
+
+Verified:
+
+• Internal LAN reachability
+• Transit network communication
+• Access to server subnet
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed
+
+• show ip nat translations
+
+• show ip nat statistics
+
+• show ip route
+
+• ping tests between networks
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Observed Results
+
+✅ Static NAT devices always used the same public IP
+
+✅ Dynamic NAT clients received addresses from the NAT pool
+
+✅ Server network reachable successfully
+
+✅ Translation table populated correctly
+
+✅ End-to-end communication operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning
+
+Static NAT:
+
+• One-to-one mapping
+
+• Permanent public address
+
+• Best for servers and critical systems
+
+Dynamic NAT:
+
+• Many internal hosts
+
+• Pool-based translation
+
+• More efficient public IP usage
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Relevance
+
+These technologies are commonly found in:
+
+• Datacenters
+
+• Enterprise WANs
+
+• ISP Edge Networks
+
+• Branch Offices
+
+• DMZ Environments
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Understanding NAT is more than memorizing commands.
+
+The real skill is knowing when to use:
+
+• Static NAT
+
+• Dynamic NAT
+
+• PAT (Overload)
+
+and designing the right solution for the business requirement.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST15
+
+#CCNA #CCNP #Cisco #NAT #StaticNAT #DynamicNAT #Networking #NetworkEngineer #EnterpriseNetworking #Routing #Infrastructure #LearningInPublic

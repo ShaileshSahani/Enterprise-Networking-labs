@@ -1,211 +1,178 @@
-LAB 18 — OSPF Stub Area & Totally Stubby Area
+LAB 18 — HSRP with ISP Failover & Interface Tracking
 Objective
 
-Understand how OSPF Stub Areas reduce routing table size by blocking external routes and how Totally Stubby Areas further reduce LSAs for scalability.
+Learn:
 
-This is heavily used in large enterprise and WAN environments.
-
+HSRP Active/Standby
+Virtual Gateway
+Interface Tracking
+WAN Failure Detection
+Automatic Gateway Failover
 Topology
-        AREA 0                AREA 1
-   R1 ------------- R2 ---------------- R3
- 1.1.1.1         ABR Router         3.3.3.3
-Lab Concept
+                    ISP
+                      |
+                      |
+               100.1.1.1/30
+                      |
+                 G0/1 |
+                    +------+
+                    |  R1  |
+                    |Active|
+                    +------+
+                 G0/0 |
+                      |
+                      |
+          -------------------------
+          |          SW1          |
+          -------------------------
+            |       |       |
+            |       |       |
+          PC1      PC2    SERVER
 
-Initially:
-
-Area 1 is a normal area
-External routes from R1 are visible in R3 routing table
-
-Then:
-
-Convert Area 1 → Stub Area
-Observe external routes disappear
-Default route appears instead
-
-Finally:
-4. Convert Area 1 → Totally Stubby Area
-5. Inter-area routes also disappear
-6. Routing table becomes much smaller
-
+                      |
+                 G0/0 |
+                    +------+
+                    |  R2  |
+                    |Standby|
+                    +------+
+                 G0/1 |
+                      |
+               100.2.2.1/30
+                      |
+                    ISP2
 IP Addressing
-Link	IP Network
-R1-R2	10.12.12.0/30
-R2-R3	10.23.23.0/30
-Loopback R1	100.100.100.0/24
-Loopback R3	3.3.3.3/32
-Topology Roles
-Router	Role
-R1	ASBR
-R2	ABR
-R3	Internal Stub Router
-STEP 1 — Configure Normal OSPF Area
-R1 Configuration
+LAN Network
+10.10.10.0/24
+Device	Interface	IP Address
+R1	G0/0	10.10.10.1
+R2	G0/0	10.10.10.2
+HSRP VIP	Virtual	10.10.10.254
+PC1	NIC	10.10.10.10
+PC2	NIC	10.10.10.20
+SERVER	NIC	10.10.10.100
+
+Gateway for all devices:
+
+10.10.10.254
+WAN Links
+R1 → ISP1
+100.1.1.0/30
+Device	IP
+ISP1	100.1.1.1
+R1	100.1.1.2
+R2 → ISP2
+100.2.2.0/30
+Device	IP
+ISP2	100.2.2.1
+R2	100.2.2.2
+
+
+R1 Configuration (ACTIVE)
 hostname R1
 
 interface g0/0
- ip address 10.12.12.1 255.255.255.252
- no shutdown
-
-interface loopback0
- ip address 100.100.100.1 255.255.255.0
-
-router ospf 1
- router-id 1.1.1.1
- network 10.12.12.0 0.0.0.3 area 0
- network 100.100.100.0 0.0.0.255 area 0
-
-redistribute connected subnets
-R2 Configuration
-hostname R2
-
-interface g0/0
- ip address 10.12.12.2 255.255.255.252
+ ip address 10.10.10.1 255.255.255.0
+ standby version 2
+ standby 10 ip 10.10.10.254
+ standby 10 priority 120
+ standby 10 preempt
+ standby 10 track g0/1 30
  no shutdown
 
 interface g0/1
- ip address 10.23.23.1 255.255.255.252
+ ip address 100.1.1.2 255.255.255.252
  no shutdown
 
-router ospf 1
- router-id 2.2.2.2
- network 10.12.12.0 0.0.0.3 area 0
- network 10.23.23.0 0.0.0.3 area 1
-R3 Configuration
-hostname R3
+ip route 0.0.0.0 0.0.0.0 100.1.1.1
+
+
+R2 Configuration (STANDBY)
+hostname R2
 
 interface g0/0
- ip address 10.23.23.2 255.255.255.252
+ ip address 10.10.10.2 255.255.255.0
+ standby version 2
+ standby 10 ip 10.10.10.254
+ standby 10 priority 100
+ standby 10 preempt
  no shutdown
 
-interface loopback0
- ip address 3.3.3.3 255.255.255.255
+interface g0/1
+ ip address 100.2.2.2 255.255.255.252
+ no shutdown
 
-router ospf 1
- router-id 3.3.3.3
- network 10.23.23.0 0.0.0.3 area 1
- network 3.3.3.3 0.0.0.0 area 1
-Verify Initial Routing Table
-On R3
-show ip route ospf
+ip route 0.0.0.0 0.0.0.0 100.2.2.1
+Verify HSRP
+show standby brief
 
 Expected:
 
-O E2 100.100.100.0/24
+R1  Active
 
-This is an external route redistributed by R1.
+R2  Standby
 
-STEP 2 — Convert Area 1 into Stub Area
+VIP 10.10.10.254
+Test Connectivity
 
-Stub areas:
-❌ Block external LSAs (Type 5)
-✅ Receive default route from ABR
+From PC1:
 
-Configure Stub Area
-On R2
-router ospf 1
- area 1 stub
-On R3
-router ospf 1
- area 1 stub
-What Happens
+ping 10.10.10.254
 
-External route disappears.
+Successful.
 
-Instead:
+Simulate WAN Failure
 
-O*IA 0.0.0.0/0
+On R1:
 
-Default route injected by ABR.
+conf t
 
-Verification
-On R3
-show ip route ospf
+interface g0/1
+ shutdown
+What Happens?
 
-Observe:
+R1 Priority:
 
-External route gone
-Default route present
-Why Enterprises Use Stub Areas
+120
 
-Benefits:
+Tracking decrement:
 
-Smaller routing table
-Reduced SPF calculations
-Faster convergence
-Lower CPU/RAM usage
-Better WAN scalability
+30
 
-Very common in:
+New Priority:
 
-Branch offices
-Remote WAN sites
-Large enterprises
-STEP 3 — Convert to Totally Stubby Area
+90
 
-Now:
+R2 Priority:
 
-Even inter-area routes are blocked
-Only default route remains
+100
 
-This further minimizes routing information.
+R2 becomes Active automatically.
 
-Configure Totally Stubby
-On ABR (R2)
-router ospf 1
- area 1 stub no-summary
-On R3
-
-(No change needed)
-
-router ospf 1
- area 1 stub
-What Happens Now
-
-R3 receives:
-✅ Only default route
-
-Everything else hidden.
-
-Routing table becomes very small.
-
-Verification
-show ip route ospf
+Verify Again
+show standby brief
 
 Expected:
 
-O*IA 0.0.0.0/0
+R2 Active
 
-No external routes.
-No inter-area routes.
+R1 Standby
+Restore Link
+interface g0/1
+ no shutdown
 
-OSPF LSA Behavior
-Area Type	External LSAs	Summary LSAs
-Normal	Allowed	Allowed
-Stub	Blocked	Allowed
-Totally Stubby	Blocked	Blocked
-Enterprise Real-World Example
+Because of:
 
-Branch office:
+standby 10 preempt
 
-Doesn’t need full enterprise routing table
-Only needs default path toward HQ
+R1 takes Active role back.
 
-Instead of learning:
+Useful Verification Commands
+show standby
 
-Thousands of routes
-Internet prefixes
-Datacenter routes
+show standby brief
 
-Branch simply gets:
+show standby vlan 10
 
-0.0.0.0/0
+show ip interface brief
 
-Much more scalable.
-
-Important Rules
-
-Stub Areas CANNOT contain:
-
-ASBRs
-External Type-5 LSAs
-Virtual links
+show track

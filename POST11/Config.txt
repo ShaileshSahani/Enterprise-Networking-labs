@@ -1,0 +1,338 @@
+LAB 11 — DYNAMIC ARP INSPECTION (DAI)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Protect users from ARP spoofing attacks.
+
+Demonstrate:
+
+ARP poisoning attack
+DHCP Snooping
+Dynamic ARP Inspection
+Trusted vs Untrusted Ports
+Dropped malicious ARP packets
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+                 MLS1
+            VLAN10 Gateway
+             10.10.10.1
+                   |
+                 G0/1
+                   |
+                 G0/1
+                  SW1
+        +-----------+-----------+
+        |           |           |
+      F0/1        F0/2        F0/3
+        |           |           |
+       PC1       ATTACKER      PC2
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+Device	Role
+MLS1	Gateway
+SW1	Access Switch
+PC1	Victim
+PC2	Victim
+ATTACKER	Kali Linux
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+Device	Address
+MLS1	10.10.10.1/24
+PC1	DHCP
+PC2	DHCP
+ATTACKER	DHCP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE MAPPING
+Device	Interface	Connected To
+MLS1	G0/1	SW1 G0/1
+SW1	F0/1	PC1
+SW1	F0/2	ATTACKER
+SW1	F0/3	PC2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MLS1 CONFIGURATION
+enable
+conf t
+
+hostname MLS1
+
+ip routing
+
+vlan 10
+ name USERS
+
+interface vlan 10
+
+ ip address 10.10.10.1 255.255.255.0
+
+ no shutdown
+
+!
+! DHCP SERVER
+!
+
+ip dhcp excluded-address 10.10.10.1 10.10.10.20
+
+ip dhcp pool USERS
+
+ network 10.10.10.0 255.255.255.0
+
+ default-router 10.10.10.1
+
+ dns-server 8.8.8.8
+
+!
+! Uplink
+!
+
+interface g0/1
+
+ switchport mode trunk
+
+ no shutdown
+
+end
+
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW1 CONFIGURATION
+enable
+conf t
+
+hostname SW1
+
+vlan 10
+ name USERS
+
+!
+! UPLINK
+!
+
+interface g0/1
+
+ switchport mode trunk
+
+ no shutdown
+
+!
+! USER PORTS
+!
+
+interface range f0/1 - 3
+
+ switchport mode access
+
+ switchport access vlan 10
+
+ spanning-tree portfast
+
+ no shutdown
+
+end
+
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY DHCP
+
+PC1
+
+ipconfig
+
+PC2
+
+ipconfig
+
+Expected:
+
+10.10.10.x addresses received
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST WITHOUT DAI
+
+ATTACKER
+
+arpspoof -i eth0 -t 10.10.10.10 10.10.10.1
+
+PC1
+
+arp -a
+
+Expected:
+
+Gateway MAC changes
+to attacker MAC
+
+Attack successful.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ENABLE DHCP SNOOPING
+
+SW1
+
+conf t
+
+ip dhcp snooping
+
+ip dhcp snooping vlan 10
+
+!
+! TRUST ONLY UPLINK
+!
+
+interface g0/1
+
+ ip dhcp snooping trust
+
+end
+
+wr
+
+Verify:
+
+show ip dhcp snooping
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ENABLE DAI
+
+SW1
+
+conf t
+
+ip arp inspection vlan 10
+
+!
+! TRUST ONLY UPLINK
+!
+
+interface g0/1
+
+ ip arp inspection trust
+
+end
+
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY DAI
+show ip arp inspection
+
+Expected:
+
+Vlan Configuration
+
+10 Enabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ATTACK AGAIN
+
+ATTACKER
+
+arpspoof -i eth0 -t 10.10.10.10 10.10.10.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION
+show ip arp inspection statistics
+
+show logging
+
+Expected:
+
+
+DHCP Snooping Validation Drops
+
+ARP Inspection Drops
+
+
+Possible log:
+
+
+%SW_DAI-4-DHCP_SNOOPING_DENY
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY FROM PC1
+arp -a
+
+Expected:
+
+
+10.10.10.1
+
+Correct Gateway MAC
+
+
+Attack fails.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+USEFUL SHOW COMMANDS
+show ip dhcp snooping
+
+show ip dhcp snooping binding
+
+show ip arp inspection
+
+show ip arp inspection statistics
+
+show logging
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FAILURE TESTS
+Wrong Port Trusted
+
+If attacker port becomes trusted:
+
+interface f0/2
+
+ ip arp inspection trust
+
+Result:
+
+DAI bypassed
+Attack succeeds
+DHCP Snooping Disabled
+no ip dhcp snooping
+
+Result:
+
+DAI has no binding database
+Validation fails
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED RESULT
+
+Before DAI:
+
+PC1 ---> ATTACKER ---> Gateway
+
+After DAI:
+
+PC1 -----------> Gateway
+
+Malicious ARP packets are dropped and users continue using the legitimate gateway. This is how DAI is typically deployed in enterprise access-layer networks.

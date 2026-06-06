@@ -1,0 +1,132 @@
+🔧 Lab 12/50 — Enterprise Campus Layer 2 Capstone
+
+Built my largest Layer 2 campus lab so far, combining multiple switching technologies into a single enterprise-style topology.
+
+🔥 Enterprise Campus Design & Redundancy
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Build a resilient Layer 2 campus network using:
+
+• VLANs
+• VTP
+• Trunking
+• STP
+• EtherChannel (LACP)
+• Redundant uplinks
+• Link failover testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• 2 Core Switches (SW1, SW2)
+• 2 Distribution Switches (SW3, SW4)
+• 2 Access Switches (SW5, SW6)
+• Dual-homed access layer
+• Redundant campus paths
+
+Designed using a simplified three-tier enterprise architecture.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Performed:
+
+✔️ Created VLANs 10, 20 and 99
+
+✔️ Configured VTP domain:
+
+CAMPUS
+
+✔️ SW1 as VTP Server
+
+✔️ Remaining switches as VTP Clients
+
+✔️ Built LACP EtherChannel between core switches
+
+✔️ Configured trunk links throughout the campus
+
+✔️ Set STP Root Primary on SW1
+
+✔️ Set STP Root Secondary on SW2
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show vlan brief
+
+• show vtp status
+
+• show interfaces trunk
+
+• show etherchannel summary
+
+• show spanning-tree vlan 10
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Observed:
+
+✅ VLANs propagated automatically through VTP
+
+✅ EtherChannel bundled successfully
+
+✅ SW1 elected as Root Bridge
+
+✅ SW2 elected as Secondary Root
+
+✅ STP blocked redundant paths correctly
+
+✅ End-to-end connectivity successful
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Failure Testing:
+
+• Shutdown EtherChannel member link
+
+Result:
+
+✅ Port-Channel remained operational
+
+• Shutdown access-layer uplink
+
+Result:
+
+✅ Backup path activated by STP
+
+• Simulated core switch failure
+
+Result:
+
+✅ SW2 assumed Root Bridge role
+
+✅ Network remained operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Enterprise Layer 2 design is not just about connectivity.
+
+It's about building redundancy so the network continues operating during link and device failures.
+
+This lab brought together VLANs, VTP, STP, EtherChannel, and failover testing into a single campus environment.
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST12
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #STP #EtherChannel #VTP #Switching #EnterpriseNetworking #NetworkEngineer #Homelab #LearningInPublic

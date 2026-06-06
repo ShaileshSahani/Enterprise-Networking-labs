@@ -1,0 +1,106 @@
+🔧 Lab 09/50 — VLAN Trunking Protocol (VTP)
+
+Built a VTP lab today to understand how VLAN information can be automatically distributed across multiple switches instead of configuring VLANs manually on every device.
+
+🔥 VTP Server, Client & VLAN Synchronization
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• SW1 → VTP Server
+• SW2 → VTP Client
+• SW3 → VTP Client
+
+All switches connected using trunk links.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Understand how VTP distributes VLAN information across a Layer 2 network and how revision numbers affect synchronization.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Performed:
+
+✔️ Configured trunk links between all switches
+
+✔️ Created VTP domain:
+
+CAMPUS
+
+✔️ Configured roles:
+
+• SW1 → Server
+• SW2 → Client
+• SW3 → Client
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN Creation Test:
+
+Created on SW1:
+
+• VLAN 10 → USERS
+• VLAN 20 → SERVERS
+• VLAN 30 → VOICE
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show vtp status
+• show vlan brief
+• show interfaces trunk
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Observed:
+
+✅ VLANs automatically appeared on SW2
+
+✅ VLANs automatically appeared on SW3
+
+✅ No local VLAN creation required on clients
+
+✅ Revision number increased after VLAN database changes
+
+✅ Successful VTP synchronization across the topology
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Most Interesting Finding:
+
+A switch with a higher VTP revision number can overwrite the VLAN database of other switches when connected to the network.
+
+In production environments, this can lead to a major outage if not handled carefully.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+VTP reduces administrative effort by centralizing VLAN management, but revision numbers must be managed carefully.
+
+This is one reason many enterprise environments prefer:
+
+• vtp mode transparent
+
+to avoid accidental VLAN database overwrites.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST9
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #VTP #VLAN #Switching #Networking #NetworkEngineer #Homelab #EnterpriseNetworking #LearningInPublic

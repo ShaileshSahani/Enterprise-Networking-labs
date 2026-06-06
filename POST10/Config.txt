@@ -1,0 +1,128 @@
+LAB 10 — PORT SECURITY VIOLATION MODES
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Compare:
+
+Protect
+Restrict
+Shutdown
+
+Understand what happens when an unauthorized device connects.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+             SW1
+          +--------+
+          | Fa0/1  |
+          +----+---+
+               |
+             PC1
+
+         (Replace PC1
+          with PC2
+          during test)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+Device	IP
+PC1	10.10.10.10
+PC2	10.10.10.20
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BASE CONFIG
+
+SW1
+
+interface fa0/1
+
+ switchport mode access
+
+ switchport port-security
+
+ switchport port-security maximum 1
+
+ switchport port-security mac-address sticky
+
+Learn PC1 MAC.
+
+Verify:
+
+show port-security interface fa0/1
+TEST 1 — PROTECT MODE
+interface fa0/1
+
+ switchport port-security violation protect
+
+Disconnect PC1.
+
+Connect PC2.
+
+Verify:
+
+show port-security interface fa0/1
+
+Expected:
+
+Frames dropped
+
+Port remains UP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST 2 — RESTRICT MODE
+interface fa0/1
+
+ switchport port-security violation restrict
+
+Reconnect PC2.
+
+Verify:
+
+show port-security interface fa0/1
+
+show logging
+
+Expected:
+
+Frames dropped
+
+Violation Counter Increases
+
+Syslog Generated
+
+Port UP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST 3 — SHUTDOWN MODE
+interface fa0/1
+
+ switchport port-security violation shutdown
+
+Reconnect PC2.
+
+Verify:
+
+show interfaces status
+
+show logging
+
+Expected:
+
+Fa0/1 err-disabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RESULTS
+Mode	Drop	Log	Shutdown
+Protect	Yes	No	No
+Restrict	Yes	Yes	No
+Shutdown	Yes	Yes	Yes

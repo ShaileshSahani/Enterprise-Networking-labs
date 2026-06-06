@@ -1,133 +1,90 @@
-🔧 Lab 18/50 — OSPF Stub Area Design & Route Filtering
+🔧 Lab 18/50 — HSRP with ISP Failover & Interface Tracking
 
-Built an advanced OSPF scalability lab today focused on Stub Areas and Totally Stubby Areas.
+Built an enterprise high-availability lab today combining HSRP gateway redundancy with WAN failure detection.
 
-🔥 OSPF Stub Area Design & Route Filtering
+What was configured?
 
-━━━━━━━━━━━━━━━━━━━━━━
+✅ HSRP Active/Standby
 
-Topology:
+✅ Virtual Gateway
 
-• R1 → ASBR
-• R2 → ABR
-• R3 → Internal Area Router
+✅ Interface Tracking
 
-━━━━━━━━━━━━━━━━━━━━━━
+✅ ISP Failover
 
-Initial State:
+✅ Automatic Recovery
 
-Area 1 was configured as a normal OSPF area.
+Topology
 
-R1 redistributed connected routes into OSPF, and R3 learned external routes normally.
+• R1 connected to ISP1
 
-Verified using:
+• R2 connected to ISP2
 
-show ip route ospf
+• Both routers provided gateway redundancy for VLAN 10
 
-Observed:
+• HSRP VIP: 10.10.10.254
 
-• O E2 external routes present in Area 1
+Initial State
 
-Then the real lab started.
+• R1 Priority = 120
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-Step 1 — Convert Area 1 into Stub Area
-
-Configured:
-
-area 1 stub
+• R2 Priority = 100
 
 Result:
 
-✅ External Type-5 LSAs blocked
-✅ External routes disappeared
-✅ Default route injected automatically by the ABR
+✅ R1 became Active
 
-Routing table became much smaller and cleaner.
+✅ R2 became Standby
 
-Verified using:
+All clients used the virtual gateway instead of physical router IPs.
 
-show ip route ospf
+Interface Tracking
 
-Instead of learning multiple external routes, R3 now only received:
+Configured on R1:
 
-O*IA 0.0.0.0/0
+standby 10 track g0/1 30
 
-━━━━━━━━━━━━━━━━━━━━━━
+If the ISP-facing interface fails, R1 automatically loses 30 priority points.
 
-Step 2 — Convert Area 1 into Totally Stubby Area
+Failover Test
 
-Configured on ABR:
-
-area 1 stub no-summary
+Shutdown R1 WAN interface.
 
 Result:
 
-✅ External routes removed
-✅ Inter-area summary routes removed
-✅ Only a default route remained
+• R1 Priority: 120 → 90
 
-━━━━━━━━━━━━━━━━━━━━━━
+• R2 Priority: 100
 
-This lab demonstrated how enterprises reduce:
+✅ R2 automatically became Active
 
-• Routing table size
-• SPF calculations
-• CPU utilization
-• LSDB complexity
+✅ Gateway remained available
 
-━━━━━━━━━━━━━━━━━━━━━━
+✅ Client connectivity continued
 
-Key Learning:
+Recovery Test
 
-Branch routers do not need thousands of enterprise routes.
+Restored the WAN link on R1.
 
-In real enterprise WAN environments, remote sites often only need:
+Because preemption was enabled:
 
-0.0.0.0/0 → toward HQ or Datacenter
+standby 10 preempt
 
-That is exactly why Stub and Totally Stubby Areas exist.
+✅ R1 automatically reclaimed the Active role
 
-━━━━━━━━━━━━━━━━━━━━━━
+✅ R2 returned to Standby
 
-Important Concepts Practiced:
+Key Learning
 
-• ABR vs ASBR
-• Type-5 LSAs
-• Default route injection
-• OSPF scalability
-• Route filtering
-• Area optimization
+HSRP alone protects against router failure.
 
-━━━━━━━━━━━━━━━━━━━━━━
+HSRP + Interface Tracking protects against WAN failure.
 
-Real-World Use Cases:
+Even if the router stays online, loss of Internet connectivity can trigger failover to a healthier gateway.
 
-• Branch offices
-• MPLS WAN environments
-• Large enterprise networks
-• Low-resource remote routers
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-The deeper I go into OSPF, the more I realize:
-
-Routing protocols are not just about connectivity —
-they are about scalability and intelligent control of information flow.
+This is a common design in enterprise branches, datacenters, and campus networks where uptime is critical.
 
 📂 Full Lab:
 https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST18
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNP #OSPF #Cisco #Routing #EnterpriseNetworking #Datacenter #NOC #Infrastructure #NetworkEngineering #Learning #MPLS #WAN
-
+#CCNA #CCNP #HSRP #Cisco #Networking #HighAvailability #Redundancy #EnterpriseNetworking #Routing #NetworkEngineer #LearningInPublic #Infrastructure

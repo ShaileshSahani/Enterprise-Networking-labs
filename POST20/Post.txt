@@ -1,0 +1,72 @@
+🔧 Lab 20/50 — Dual ISP BGP Failover
+
+Built a BGP lab today to simulate enterprise Internet redundancy using two ISPs.
+
+Topology
+
+• R1 (AS65000)
+• ISP1 (AS65001) — Primary
+• ISP2 (AS65002) — Backup
+
+Configured
+
+✅ eBGP peering with both ISPs
+
+✅ Advertised internal network 192.168.1.0/24
+
+✅ Applied Local Preference to prefer ISP1
+
+set local-preference 200
+
+Verification
+
+• Both BGP sessions established
+
+• Routes learned from both providers
+
+• ISP1 selected as the best path
+
+Failover Test
+
+Shut down the ISP1 link.
+
+Result:
+
+✅ ISP1 session dropped
+
+✅ ISP2 remained established
+
+✅ Traffic automatically switched to ISP2
+
+Recovery Test
+
+Restored ISP1 connectivity.
+
+Result:
+
+✅ BGP session re-established
+
+✅ Preferred path returned automatically
+
+Key Learning
+
+BGP isn't just about reachability.
+
+It's about controlling traffic flow using routing policies.
+
+This lab helped reinforce:
+
+• eBGP fundamentals
+
+• Local Preference
+
+• Best Path Selection
+
+• WAN Redundancy
+
+• Enterprise Edge Design
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST20
+
+#CCNA #CCNP #BGP #Cisco #Networking #Routing #EnterpriseNetworking #NetworkEngineer #LearningInPublic

@@ -39,7 +39,8 @@ R2	G0/0	10.1.1.2/30
 R1 Configuration
 
 (Default broadcast network type)
-
+en
+conf t
 hostname R1
 
 interface g0/0
@@ -49,10 +50,12 @@ interface g0/0
 router ospf 1
  router-id 1.1.1.1
  network 10.1.1.0 0.0.0.3 area 0
+ 
 R2 Configuration
 
 (Change network type to point-to-point)
-
+en
+conf t
 hostname R2
 
 interface g0/0
@@ -63,6 +66,8 @@ interface g0/0
 router ospf 1
  router-id 2.2.2.2
  network 10.1.1.0 0.0.0.3 area 0
+ 
+ 
 What Happens
 
 OSPF neighbors may still become FULL.
@@ -173,3 +178,4 @@ Metro Ethernet deployments
 Tunnel migrations
 Datacenter interconnects
 Engineers copy configs from serial links to Ethernet
+create image for this to

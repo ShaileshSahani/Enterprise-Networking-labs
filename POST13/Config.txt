@@ -1,0 +1,175 @@
+LAB 13 — Floating Static Route Failover
+Objective
+
+Learn how to configure a floating static route so that traffic automatically switches to a backup WAN link when the primary link fails.
+
+Topology Overview (Based on Image)
+Device	Interface	Connected To	Remote Interface	IP Address	Subnet Mask
+PC-A	NIC	SW1 Fa0/1	Fa0/1	10.1.1.10	255.255.255.0
+SW1	Fa0/1	PC-A	NIC	-	-
+SW1	Fa0/2	R1 G0/0	G0/0	-	-
+R1	G0/0	SW1 Fa0/2	Fa0/2	10.1.1.1	255.255.255.0
+R1	G0/1	R2 G0/1	G0/1	192.168.12.1	255.255.255.252
+R1	G0/2	R2 G0/2	G0/2	192.168.13.1	255.255.255.252
+R2	G0/1	R1 G0/1	G0/1	192.168.12.2	255.255.255.252
+R2	G0/2	R1 G0/2	G0/2	192.168.13.2	255.255.255.252
+R2	G0/0	R3 G0/0	G0/0	10.2.2.1	255.255.255.0
+R3	G0/0	R2 G0/0	G0/0	10.2.2.2	255.255.255.0
+R3	G0/1	SW2 Fa0/2	Fa0/2	10.3.3.1	255.255.255.0
+SW2	Fa0/1	PC-B	NIC	-	-
+PC-B	NIC	SW2 Fa0/1	Fa0/1	10.3.3.10	255.255.255.0
+
+
+
+Phase 1 — Configure LAN Interfaces
+PC-A
+IP: 10.1.1.10
+Mask: 255.255.255.0
+Gateway: 10.1.1.1
+
+PC-B
+IP: 10.3.3.10
+Mask: 255.255.255.0
+Gateway: 10.3.3.1
+
+SW1 Configuration
+
+enable
+conf t
+hostname SW1
+interface fa0/1
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+interface fa0/2
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+end
+wr
+
+SW2 Configuration
+enable
+conf t
+hostname SW2
+interface fa0/1
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+interface fa0/2
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+end
+wr
+
+Phase 2 — Configure Router Interfaces
+
+R1
+enable
+conf t
+hostname R1
+
+interface g0/0
+ ip address 10.1.1.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.12.1 255.255.255.252
+ no shutdown
+
+interface g0/2
+ ip address 192.168.13.1 255.255.255.252
+ no shutdown
+end
+wr
+
+R2
+enable
+conf t
+hostname R2
+
+interface g0/0
+ ip address 10.2.2.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.12.2 255.255.255.252
+ no shutdown
+
+interface g0/2
+ ip address 192.168.13.2 255.255.255.252
+ no shutdown
+end
+wr
+
+
+R3
+enable
+conf t
+hostname R3
+
+interface g0/0
+ ip address 10.2.2.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 10.3.3.1 255.255.255.0
+ no shutdown
+end
+wr
+
+
+Phase 3 — Configure Primary Static Routes
+R1
+ip route 10.3.3.0 255.255.255.0 192.168.12.2
+R2
+ip route 10.1.1.0 255.255.255.0 192.168.12.1
+ip route 10.3.3.0 255.255.255.0 10.2.2.2
+R3
+ip route 10.1.1.0 255.255.255.0 10.2.2.1
+
+Phase 4 — Test Primary Path
+
+From PC-A:
+
+ping 10.3.3.10
+
+✅ Should succeed via Primary Path: 192.168.12.0/30
+
+
+Phase 5 — Add Floating Static Route (Backup)
+
+Bring primary link back up if shut.
+
+R1
+ip route 10.3.3.0 255.255.255.0 192.168.13.2 10
+AD 10 → backup route
+Primary route AD 1 → normal
+R2
+ip route 10.1.1.0 255.255.255.0 192.168.13.1 10
+Phase 6 — Test Failover
+
+Shutdown Primary Link:
+
+interface g0/1
+ shutdown
+
+From PC-A:
+
+ping 10.3.3.10
+
+✅ Should now succeed via Backup Path: 192.168.13.0/30
+
+Verification
+show ip route
+show ip route | include 10.3.3.0
+Primary route AD 1 → active
+Floating route AD 10 → only used if primary fails
+Key Concepts
+Concept	Learning
+Primary Static Route	AD = 1, active when up
+Floating Static Route	AD > primary, backup only
+Failover	Automatic when primary link fails
+Backup Path	Provides redundancy without dynamic routing
+Enterprise Use	WAN failover, branch offices, MPLS backup

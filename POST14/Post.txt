@@ -1,0 +1,114 @@
+🔧 Lab 14/50 — Router-on-a-Stick + DHCP + PAT (NAT Overload)
+
+Built a small enterprise branch lab today combining VLAN routing, DHCP, and Internet access through PAT.
+
+🔥 Inter-VLAN Routing & NAT Overload
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective
+
+• Route between multiple VLANs using a single router
+• Provide DHCP for each VLAN
+• Enable PAT (NAT Overload) for Internet access
+• Demonstrate subinterfaces and trunking in a branch scenario
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology
+
+• R1 → Router, DHCP, NAT
+• SW1 → Access switch trunked to R1
+• VLAN10 → PC1 (Sales)
+• VLAN20 → PC2 (HR)
+• VLAN30 → PC3 (IT)
+• Single public IP shared via PAT to Internet
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+VLANs & Gateways
+
+VLAN | Name | Gateway
+10 | SALES | 10.10.10.1
+20 | HR | 10.10.20.1
+30 | IT | 10.10.30.1
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Highlights
+
+SW1
+
+• Created VLANs 10, 20, 30
+• Configured access ports for each VLAN
+• Trunked Gi0/1 to R1
+
+R1
+
+• Configured subinterfaces for each VLAN
+• Assigned internal IPs (inside NAT)
+• Configured DHCP pools per VLAN
+• Enabled NAT inside/outside
+• Configured PAT using single public IP
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+DHCP Verification
+
+• show ip dhcp binding
+• PCs obtained addresses automatically:
+
+• PC1 → 10.10.10.x
+• PC2 → 10.10.20.x
+• PC3 → 10.10.30.x
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Routing Verification
+
+• PCs ping VLAN gateways
+• Inter-VLAN routing works via subinterfaces
+• R1 routes between VLANs 10, 20, 30
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+NAT Verification
+
+• Generate traffic to Internet (simulated)
+• show ip nat translations shows all VLANs using R1 Gi0/1 IP
+• PAT allows multiple users to share one public IP
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Checklist
+
+• No DHCP Address → Check DHCP bindings & pools
+• VLAN cannot reach router → Verify subinterfaces UP/UP
+• NAT not translating → Check ip nat inside/outside & ACLs
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning
+
+• Subinterfaces enable inter-VLAN routing on a single router
+• DHCP can be centralized on the router
+• PAT allows hundreds of users to share one public IP
+• Router-on-a-stick is a common branch-office design
+• Prepares for scaling with HSRP and multilayer switches
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Expected Result
+
+✅ PCs in each VLAN get proper IPs
+✅ Inter-VLAN routing works
+✅ NAT translations occur
+✅ Internet access via PAT simulated successfully
+✅ Small branch network operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST14
+
+#CCNA #Cisco #RouterOnAStick #DHCP #NAT #PAT #InterVLANRouting #Networking #NetworkEngineer #EnterpriseNetworking #Homelab #LearningInPublic

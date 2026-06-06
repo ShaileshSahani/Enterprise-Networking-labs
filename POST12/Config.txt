@@ -1,0 +1,349 @@
+LAB 12 — ENTERPRISE CAMPUS LAYER 2 CAPSTONE
+
+This version uses a proper three-tier campus design and avoids topology mistakes. Every redundant link has a purpose, STP has a clear role, and EtherChannel is used where enterprises actually deploy it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Build a campus Layer 2 network using:
+
+VLANs
+VTP
+Trunking
+STP Root Primary/Secondary
+EtherChannel (LACP)
+Redundant Access Uplinks
+Link Failover
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+                    CORE LAYER
+
+               SW1 ========== SW2
+                ||    Po1    ||
+                ||           ||
+
+                 |           |
+                 |           |
+
+                SW3         SW4
+              DIST-A      DIST-B
+
+                 | \       / |
+                 |  \     /  |
+                 |   \   /   |
+                 |    \ /    |
+                 |     X     |
+                 |    / \    |
+                 |   /   \   |
+                 |  /     \  |
+                 | /       \ |
+                SW5       SW6
+             ACCESS-A   ACCESS-B
+
+              |            |
+             PC1          PC2
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+Core Layer
+Device	Interface	Connected To
+SW1	G0/1	SW2 G0/1
+SW1	G0/2	SW2 G0/2
+Core → Distribution
+Device	Interface	Connected To
+SW1	G0/3	SW3 G0/1
+SW2	G0/3	SW4 G0/1
+Distribution → Access
+Device	Interface	Connected To
+SW3	G0/2	SW5 G0/1
+SW3	G0/3	SW6 G0/1
+SW4	G0/2	SW5 G0/2
+SW4	G0/3	SW6 G0/2
+End Devices
+Device	Interface	Connected To
+SW5	F0/1	PC1
+SW6	F0/1	PC2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN PLAN
+VLAN	Name
+10	USERS
+20	SERVERS
+99	MANAGEMENT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VTP DESIGN
+Switch	Mode
+SW1	Server
+SW2	Client
+SW3	Client
+SW4	Client
+SW5	Client
+SW6	Client
+
+Domain:
+
+CAMPUS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+
+Both PCs in VLAN 10
+
+Device	IP
+PC1	10.10.10.10/24
+PC2	10.10.10.20/24
+
+No gateway required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW1 CONFIGURATION (CORE PRIMARY)
+enable
+conf t
+
+hostname SW1
+
+vtp domain CAMPUS
+vtp mode server
+
+vlan 10
+ name USERS
+
+vlan 20
+ name SERVERS
+
+vlan 99
+ name MANAGEMENT
+
+spanning-tree vlan 1,10,20,99 root primary
+
+interface range g0/1-2
+ switchport mode trunk
+ channel-group 1 mode active
+ no shutdown
+
+interface port-channel1
+ switchport mode trunk
+
+interface g0/3
+ switchport mode trunk
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW2 CONFIGURATION (CORE SECONDARY)
+enable
+conf t
+
+hostname SW2
+
+vtp domain CAMPUS
+vtp mode client
+
+spanning-tree vlan 1,10,20,99 root secondary
+
+interface range g0/1-2
+ switchport mode trunk
+ channel-group 1 mode active
+ no shutdown
+
+interface port-channel1
+ switchport mode trunk
+
+interface g0/3
+ switchport mode trunk
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW3 CONFIGURATION (DIST-A)
+enable
+conf t
+
+hostname SW3
+
+vtp domain CAMPUS
+vtp mode client
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+interface g0/2
+ switchport mode trunk
+ no shutdown
+
+interface g0/3
+ switchport mode trunk
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW4 CONFIGURATION (DIST-B)
+enable
+conf t
+
+hostname SW4
+
+vtp domain CAMPUS
+vtp mode client
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+interface g0/2
+ switchport mode trunk
+ no shutdown
+
+interface g0/3
+ switchport mode trunk
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW5 CONFIGURATION (ACCESS-A)
+enable
+conf t
+
+hostname SW5
+
+vtp domain CAMPUS
+vtp mode client
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+interface g0/2
+ switchport mode trunk
+ no shutdown
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW6 CONFIGURATION (ACCESS-B)
+enable
+conf t
+
+hostname SW6
+
+vtp domain CAMPUS
+vtp mode client
+
+interface g0/1
+ switchport mode trunk
+ no shutdown
+
+interface g0/2
+ switchport mode trunk
+ no shutdown
+
+interface f0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION
+show vlan brief
+
+show vtp status
+
+show interfaces trunk
+
+show etherchannel summary
+
+show spanning-tree vlan 10
+
+Expected:
+
+SW1 = Root Bridge
+
+SW2 = Secondary Root
+
+Po1(SU)
+
+All VLANs learned via VTP
+
+One redundant path blocked by STP
+
+PC1 ↔ PC2 Ping Successful
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FAILURE TESTS
+Test 1 — EtherChannel Member Failure
+SW1(config)#interface g0/1
+SW1(config-if)#shutdown
+
+Expected:
+
+Po1 remains UP
+Traffic unaffected
+Test 2 — Access Uplink Failure
+SW5(config)#interface g0/1
+SW5(config-if)#shutdown
+
+Expected:
+
+STP activates backup uplink
+Traffic continues
+Test 3 — Core Failure
+
+Power off SW1.
+
+Expected:
+
+SW2 becomes Root Bridge
+
+Campus remains operational
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHY THIS IS THE BEST FINAL L2 LAB
+
+It demonstrates the core enterprise Layer 2 technologies together:
+
+VLAN segmentation
+VTP propagation
+Trunking
+STP path selection
+EtherChannel redundancy
+Access-layer redundancy
+Campus failover behavior

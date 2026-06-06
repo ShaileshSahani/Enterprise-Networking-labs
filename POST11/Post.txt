@@ -1,0 +1,137 @@
+🔧 Lab 11/50 — Dynamic ARP Inspection (DAI)
+
+Built a Layer 2 security lab today focused on protecting users from one of the most common local network attacks.
+
+🔥 ARP Spoofing Prevention with DHCP Snooping & DAI
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Prevent ARP spoofing attacks using:
+
+• DHCP Snooping
+• Dynamic ARP Inspection (DAI)
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• MLS1 → Default Gateway (10.10.10.1)
+• SW1 → Access Switch
+• PC1 → Victim Host
+• PC2 → Normal Host
+• Kali Linux → Attacker
+
+All devices connected within VLAN 10.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1 — ARP Spoofing Attack
+
+Before enabling security features, I launched an ARP spoofing attack from the Kali machine against PC1.
+
+Observed:
+
+✅ Gateway MAC address on PC1 changed
+
+✅ Traffic was redirected through the attacker
+
+✅ Man-in-the-Middle attack successful
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 2 — DHCP Snooping
+
+Configured DHCP Snooping on SW1.
+
+Trusted:
+
+• Uplink toward MLS1
+
+Verified using:
+
+• show ip dhcp snooping
+
+This created the binding database required by DAI.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 3 — Dynamic ARP Inspection
+
+Enabled:
+
+• ip arp inspection vlan 10
+
+Trusted only the uplink interface.
+
+Verified using:
+
+• show ip arp inspection
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Attack Re-Test
+
+Repeated the same ARP spoofing attack from Kali.
+
+Result:
+
+✅ Spoofed ARP packets dropped
+
+✅ DAI deny messages generated
+
+✅ Gateway MAC remained correct
+
+✅ Attack blocked successfully
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show ip arp inspection
+
+• show ip arp inspection statistics
+
+• show ip dhcp snooping
+
+• show logging
+
+• arp -a
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+ARP has no built-in authentication, making it vulnerable to spoofing attacks.
+
+Dynamic ARP Inspection validates ARP packets against the DHCP Snooping database and blocks forged ARP replies before they reach users.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Relevance:
+
+• Campus networks
+
+• Corporate LANs
+
+• User access VLANs
+
+• Financial environments
+
+• Security-focused enterprise networks
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST11
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #DAI #DHCPSnooping #NetworkSecurity #CyberSecurity #Switching #Networking #NetworkEngineer #LearningInPublic

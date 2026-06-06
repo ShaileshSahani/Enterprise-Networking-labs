@@ -1,0 +1,282 @@
+LAB 20 — DUAL ISP BGP FAILOVER
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Configure:
+
+✅ eBGP
+
+✅ Dual ISP Connectivity
+
+✅ Primary ISP
+
+✅ Backup ISP
+
+✅ Automatic Failover
+
+✅ Route Recovery
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+      ISP1 (AS65001)               ISP2 (AS65002)
+      100.100.100.0/24            200.200.200.0/24
+             |                           |
+             |                           |
+      10.1.1.1/30                 20.1.1.1/30
+             |                           |
+             |                           |
+             +-----------R1-------------+
+                  G0/0     G0/1
+                 AS65000
+                     |
+                     |
+               G0/2 192.168.1.1
+                     |
+                    SW1
+                     |
+                    PC1
+               192.168.1.10
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+Device	Role
+R1	Enterprise Edge Router
+ISP1	Primary ISP
+ISP2	Backup ISP
+SW1	Access Switch
+PC1	Internal User
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IP ADDRESSING
+LAN
+Device	Interface	IP
+R1	G0/2	192.168.1.1/24
+PC1	NIC	192.168.1.10/24
+ISP1
+Device	Interface	IP
+ISP1	G0/0	10.1.1.1/30
+R1	G0/0	10.1.1.2/30
+ISP2
+Device	Interface	IP
+ISP2	G0/0	20.1.1.1/30
+R1	G0/1	20.1.1.2/30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PC1 CONFIGURATION
+IP Address : 192.168.1.10
+
+Subnet Mask : 255.255.255.0
+
+Gateway : 192.168.1.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISP1 CONFIGURATION
+enable
+conf t
+
+hostname ISP1
+
+interface g0/0
+ ip address 10.1.1.1 255.255.255.252
+ no shutdown
+
+!
+! Loopback simulates Internet
+!
+
+interface loopback0
+ ip address 100.100.100.1 255.255.255.0
+
+router bgp 65001
+
+ neighbor 10.1.1.2 remote-as 65000
+
+ network 100.100.100.0 mask 255.255.255.0
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISP2 CONFIGURATION
+enable
+conf t
+
+hostname ISP2
+
+interface g0/0
+ ip address 20.1.1.1 255.255.255.252
+ no shutdown
+
+!
+! Loopback simulates Internet
+!
+
+interface loopback0
+ ip address 200.200.200.1 255.255.255.0
+
+router bgp 65002
+
+ neighbor 20.1.1.2 remote-as 65000
+
+ network 200.200.200.0 mask 255.255.255.0
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+R1 CONFIGURATION
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 10.1.1.2 255.255.255.252
+ no shutdown
+
+interface g0/1
+ ip address 20.1.1.2 255.255.255.252
+ no shutdown
+
+interface g0/2
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+router bgp 65000
+
+ neighbor 10.1.1.1 remote-as 65001
+
+ neighbor 20.1.1.1 remote-as 65002
+
+ network 192.168.1.0 mask 255.255.255.0
+
+ !
+ ! Prefer ISP1
+ !
+
+ neighbor 10.1.1.1 route-map ISP1-PREF in
+
+exit
+
+route-map ISP1-PREF permit 10
+ set local-preference 200
+
+end
+wr
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY BGP
+show ip bgp summary
+
+Expected:
+
+Neighbor        State
+
+10.1.1.1        Established
+
+20.1.1.1        Established
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY ROUTES
+show ip route bgp
+
+Expected:
+
+B 100.100.100.0/24
+
+B 200.200.200.0/24
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY BEST PATH
+show ip bgp
+
+ISP1 should be selected as best path because Local Preference is higher.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FAILOVER TEST
+
+Shutdown ISP1 link.
+
+ISP1
+
+conf t
+
+interface g0/0
+
+shutdown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFY FAILOVER
+
+R1
+
+show ip bgp summary
+
+Expected:
+
+10.1.1.1   Idle
+
+20.1.1.1   Established
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST CONNECTIVITY
+
+From R1:
+
+ping 200.200.200.1
+
+Expected:
+
+Success
+
+Traffic now uses ISP2.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RECOVERY TEST
+
+ISP1
+
+interface g0/0
+
+no shutdown
+
+Wait 30–60 seconds.
+
+show ip bgp summary
+
+Expected:
+
+Both Neighbors Established
+
+Traffic automatically returns to ISP1.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+USEFUL COMMANDS
+show ip bgp summary
+
+show ip bgp
+
+show ip route bgp
+
+show ip bgp neighbors
+
+show ip interface brief

@@ -1,0 +1,362 @@
+LAB 14 — ROUTER-ON-A-STICK + DHCP + PAT (NAT OVERLOAD)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBJECTIVE
+
+Build a small enterprise network where:
+
+One router routes between multiple VLANs
+Router provides DHCP
+PAT (NAT Overload) provides Internet access
+Multiple VLANs share a single public IP
+
+This lab teaches:
+
+✅ Router-on-a-Stick
+
+✅ Inter-VLAN Routing
+
+✅ DHCP
+
+✅ PAT
+
+✅ Trunking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOPOLOGY
+
+                    INTERNET
+                        |
+                        |
+                R1 Gi0/1
+             192.168.1.1/24
+                        |
+                        |
+                R1 Gi0/0
+                        |
+                    TRUNK
+                        |
+                        |
+                       SW1
+        +---------------+---------------+
+        |               |               |
+      VLAN10         VLAN20          VLAN30
+        |               |               |
+       PC1             PC2             PC3
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEVICE ROLES
+Device	Role
+R1	Router, DHCP, NAT
+SW1	Access Switch
+PC1	Sales
+PC2	HR
+PC3	IT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VLAN PLAN
+VLAN	Name	Gateway
+10	SALES	10.10.10.1
+20	HR	10.10.20.1
+30	IT	10.10.30.1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INTERFACE CONNECTIONS
+Device	Interface	Connected To
+R1	Gi0/0	SW1 Gi0/1
+R1	Gi0/1	Internet Cloud
+SW1	Fa0/1	PC1
+SW1	Fa0/2	PC2
+SW1	Fa0/3	PC3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SW1 CONFIGURATION
+enable
+configure terminal
+
+hostname SW1
+
+vlan 10
+ name SALES
+
+vlan 20
+ name HR
+
+vlan 30
+ name IT
+
+!
+! Router Trunk
+!
+
+interface g0/1
+
+ switchport mode trunk
+
+ no shutdown
+
+!
+! PC1
+!
+
+interface f0/1
+
+ switchport mode access
+
+ switchport access vlan 10
+
+ no shutdown
+
+!
+! PC2
+!
+
+interface f0/2
+
+ switchport mode access
+
+ switchport access vlan 20
+
+ no shutdown
+
+!
+! PC3
+!
+
+interface f0/3
+
+ switchport mode access
+
+ switchport access vlan 30
+
+ no shutdown
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+R1 CONFIGURATION
+enable
+configure terminal
+
+hostname R1
+
+!
+! INTERNET LINK
+!
+
+interface gi0/1
+
+ ip address 192.168.1.1 255.255.255.0
+
+ ip nat outside
+
+ no shutdown
+
+!
+! TRUNK LINK
+!
+
+interface gi0/0
+
+ no ip address
+
+ no shutdown
+
+!
+! VLAN 10
+!
+
+interface gi0/0.10
+
+ encapsulation dot1Q 10
+
+ ip address 10.10.10.1 255.255.255.0
+
+ ip nat inside
+
+!
+! VLAN 20
+!
+
+interface gi0/0.20
+
+ encapsulation dot1Q 20
+
+ ip address 10.10.20.1 255.255.255.0
+
+ ip nat inside
+
+!
+! VLAN 30
+!
+
+interface gi0/0.30
+
+ encapsulation dot1Q 30
+
+ ip address 10.10.30.1 255.255.255.0
+
+ ip nat inside
+
+!
+! DHCP
+!
+
+ip dhcp pool VLAN10
+
+ network 10.10.10.0 255.255.255.0
+
+ default-router 10.10.10.1
+
+ dns-server 8.8.8.8
+
+ip dhcp pool VLAN20
+
+ network 10.10.20.0 255.255.255.0
+
+ default-router 10.10.20.1
+
+ dns-server 8.8.8.8
+
+ip dhcp pool VLAN30
+
+ network 10.10.30.0 255.255.255.0
+
+ default-router 10.10.30.1
+
+ dns-server 8.8.8.8
+
+!
+! NAT ACL
+!
+
+access-list 1 permit 10.10.10.0 0.0.0.255
+access-list 1 permit 10.10.20.0 0.0.0.255
+access-list 1 permit 10.10.30.0 0.0.0.255
+
+!
+! PAT
+!
+
+ip nat inside source list 1 interface gi0/1 overload
+
+end
+
+write memory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PC CONFIGURATION
+
+All PCs:
+
+IP Configuration → DHCP
+
+Expected:
+
+Device	Expected IP
+PC1	10.10.10.x
+PC2	10.10.20.x
+PC3	10.10.30.x
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION
+Verify DHCP
+show ip dhcp binding
+
+Expected:
+
+
+10.10.10.x
+10.10.20.x
+10.10.30.x
+
+Verify Routing
+
+PC1
+
+ping 10.10.20.1
+
+PC2
+
+ping 10.10.30.1
+
+Expected:
+
+Success
+Verify NAT
+
+Generate traffic:
+
+PC1 -> ping 192.168.1.254
+
+Check:
+
+show ip nat translations
+
+Expected:
+
+
+Inside Local      Inside Global
+
+10.10.10.x        192.168.1.1
+10.10.20.x        192.168.1.1
+10.10.30.x        192.168.1.1
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+No DHCP Address
+show ip dhcp binding
+show run | section dhcp
+VLAN Cannot Reach Router
+show ip interface brief
+
+Verify:
+
+Gi0/0.10
+Gi0/0.20
+Gi0/0.30
+
+UP/UP
+
+NAT Not Working
+show ip nat statistics
+
+show ip nat translations
+
+Verify:
+
+ip nat inside
+ip nat outside
+
+Correctly configured.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXPECTED RESULT
+Router-on-a-Stick working
+DHCP assigns addresses automatically
+VLAN 10, 20, and 30 can route through R1
+PAT translates all internal users to one public IP
+Enterprise branch-office style network operational
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY TAKEAWAYS
+Subinterfaces enable inter-VLAN routing.
+DHCP can be centralized on the router.
+PAT allows hundreds of users to share one public IP.
+This design is common in small branches and labs before moving to HSRP and larger multilayer-switch environments.

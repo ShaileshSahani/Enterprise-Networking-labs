@@ -1,121 +1,103 @@
-🔧 Lab 16/50 — OSPF Neighbor Stuck in EXSTART Due to MTU Mismatch
+🔧 Lab 16/50 — OSPF MTU Mismatch (Stuck in EXSTART)
 
-Built an advanced OSPF troubleshooting lab today focused on one of the most common enterprise routing failures:
+Built an OSPF troubleshooting lab today focused on a routing issue that can be surprisingly difficult to identify in production environments.
 
-🔥 OSPF adjacency stuck in EXSTART because of MTU mismatch
+🔥 OSPF Neighbor Stuck in EXSTART Due to MTU Mismatch
 
-━━━━━━━━━━━━━━━━━━━━━━
+Lab Topology
 
-Topology:
-
-• 2 Routers
+• R1 ↔ R2
 • OSPF Area 0
-• Same subnet connectivity
-• Different interface MTU values
+• Same subnet
+• Same hello/dead timers
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-Issue Created:
+Configured:
 
 • R1 MTU = 1500
 • R2 MTU = 1400
 
-Result:
-
-OSPF adjacency never reached FULL state and remained stuck in EXSTART.
+At first glance everything looked correct.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Troubleshooting Performed:
+Observed Behavior
 
-✔️ Verified neighbor states using:
+OSPF adjacency started forming normally:
+
+DOWN → INIT → 2-WAY → EXSTART
+
+Then stopped.
+
+The routers never reached FULL adjacency.
+
+No OSPF routes were exchanged.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Performed
+
+Verified neighbor status:
 
 show ip ospf neighbor
 
-✔️ Checked interface MTU values:
+Checked interface MTU values:
 
 show interface g0/0
 
-✔️ Captured OSPF adjacency behavior using:
+Used:
 
 debug ip ospf adj
 
-Observed:
-
-• Continuous DBD retransmissions
-• MTU mismatch errors
-• Failed LSDB synchronization attempts
+Observed continuous DBD packet retransmissions caused by MTU mismatch during LSDB synchronization.
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Root Cause Analysis:
+Root Cause
 
-OSPF validates MTU values during Database Description (DBD) packet exchange to prevent LSDB corruption and fragmentation-related synchronization issues.
+During Database Description (DBD) packet exchange, OSPF validates MTU values between neighbors.
 
-If MTU values do not match, adjacency formation stops before FULL state.
+When MTU values don't match:
+
+• LSDB synchronization fails
+• DBD packets are rejected
+• Adjacency remains stuck in EXSTART/EXCHANGE
+• Routes are never installed
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Fix Applied:
+Fix Applied
 
-1. Matched MTU values on both routers
+✅ Matched MTU values on both routers
 
-2. Tested alternative workaround using:
+Also tested:
 
 ip ospf mtu-ignore
 
-━━━━━━━━━━━━━━━━━━━━━━
+After correction:
 
-After Correction:
-
-✅ OSPF adjacency reached FULL state
-✅ Routes installed successfully
-✅ LSDB synchronization completed normally
+• Neighbor state moved to FULL
+• OSPF routes appeared successfully
+• LSDB synchronization completed normally
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Key Learning:
+Key Learning
 
-Many engineers immediately suspect:
+When OSPF is stuck in EXSTART, don't immediately assume timer or authentication issues.
 
-• Hello/dead timer mismatch
-• Authentication problems
-• Area mismatch
+MTU mismatch is one of the most common real-world causes and is frequently seen during:
 
-But MTU mismatch is one of the most overlooked causes of EXSTART/EXCHANGE failures in enterprise environments.
-
-━━━━━━━━━━━━━━━━━━━━━━
-
-Real-World Scenarios Where This Happens Frequently:
-
-• GRE/IPSec tunnels
-• MPLS WAN links
-• VMware virtual networking
-• Datacenter jumbo frame environments
-• ISP handoff modifications
+• GRE/IPsec deployments
+• MPLS migrations
+• VMware networking changes
+• Jumbo-frame environments
+• WAN MTU modifications
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
-This lab improved my understanding of:
-
-• OSPF neighbor formation
-• DBD packet exchange
-• LSDB synchronization
-• OSPF state transitions
-• Enterprise routing troubleshooting
+Understanding protocol behavior during failures is where networking becomes interesting.
 
 📂 Full Lab:
 https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST16
 
-━━━━━━━━━━━━━━━━━━━━━━
-
-50 Labs. 90 Days.
-
-Building networks.
-Breaking networks.
-Fixing networks.
-
-All public.
-
-#CCNP #OSPF #Cisco #Routing #Networking #NetworkEngineer #EnterpriseNetworking #Datacenter #Troubleshooting #Infrastructure #AWS #Fortinet
-
+#CCNA #CCNP #Cisco #OSPF #Routing #NetworkEngineer #Networking #Troubleshooting #Infrastructure #Datacenter #LearningInPublic

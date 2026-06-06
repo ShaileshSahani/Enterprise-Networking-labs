@@ -1,0 +1,118 @@
+🔧 Lab 13/50 — Floating Static Route Failover
+
+Built a WAN redundancy lab today focused on one of the simplest and most effective backup routing mechanisms.
+
+🔥 Floating Static Routes
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Lab Objective:
+
+Configure a backup path that automatically takes over when the primary WAN link fails.
+
+Validated:
+
+• Static routing
+• Administrative Distance (AD)
+• Automatic failover
+• WAN redundancy
+• Route selection
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+
+• R1 → Branch Router
+• R2 → Transit Router
+• R3 → Remote Site Router
+
+Two WAN links existed between R1 and R2:
+
+• Primary → 192.168.12.0/30
+• Backup → 192.168.13.0/30
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Configuration Performed:
+
+✔️ Configured primary static routes
+
+✔️ Added backup static routes with higher AD
+
+Example:
+
+ip route 10.3.3.0 255.255.255.0 192.168.13.2 10
+
+The higher Administrative Distance ensured the route remained inactive until the primary path failed.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+• show ip route
+
+• show ip route | include 10.3.3.0
+
+• End-to-end ping testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Observed:
+
+✅ Primary route installed with AD 1
+
+✅ Backup route remained in standby state
+
+✅ Traffic followed primary WAN link
+
+✅ Successful connectivity between sites
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Failover Test:
+
+Shutdown the primary WAN interface between R1 and R2.
+
+Result:
+
+✅ Primary route removed from routing table
+
+✅ Floating static route became active
+
+✅ Traffic automatically switched to backup link
+
+✅ Connectivity remained operational
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Floating static routes provide a simple form of WAN redundancy without requiring dynamic routing protocols.
+
+By assigning a higher Administrative Distance to the backup route, routers automatically prefer the primary path while keeping a standby route ready for failure scenarios.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Enterprise Use Cases:
+
+• Branch office connectivity
+• MPLS backup circuits
+• ISP failover
+• WAN redundancy
+• Small enterprise networks
+
+📂 Full Lab:
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST13
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building networks.
+Breaking networks.
+Fixing networks.
+
+All public.
+
+#CCNA #Cisco #StaticRouting #WAN #Networking #NetworkEngineer #Routing #Infrastructure #Homelab #LearningInPublic
+
