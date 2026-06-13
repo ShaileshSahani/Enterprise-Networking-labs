@@ -1,0 +1,80 @@
+🔧 Lab 24/50 — OSPF ↔ EIGRP Redistribution
+
+Built a routing redistribution lab today focused on exchanging routes between OSPF and EIGRP domains through a redistribution router.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure bidirectional route redistribution between OSPF and EIGRP and verify route exchange across different routing protocol domains.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured OSPF routing domain
+• Configured EIGRP routing domain
+• Established redistribution router functionality
+• Redistributed EIGRP routes into OSPF
+• Redistributed OSPF routes into EIGRP
+• Configured EIGRP default metrics for redistribution
+• Verified external route propagation between protocols
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ OSPF neighbor validation
+
+✔️ EIGRP neighbor validation
+
+✔️ External route verification
+
+✔️ Routing table inspection
+
+✔️ End-to-end connectivity testing
+
+✔️ Route exchange confirmation in both directions
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Route redistribution allows different routing protocols to exchange routing information. Understanding route metrics, external route types, and redistribution behavior is critical for enterprise migrations and hybrid network environments.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Many enterprise networks run multiple routing protocols due to mergers, legacy infrastructure, or phased migrations. Redistribution enables seamless communication between these environments without requiring a complete network redesign.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete router configurations
+
+• OSPF to EIGRP redistribution
+
+• EIGRP to OSPF redistribution
+
+• Verification commands
+
+• Troubleshooting scenarios
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST24
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Connecting routing domains.
+Learning enterprise migrations.
+All public.
+
+#CCNA #CCNP #OSPF #EIGRP #Routing #Cisco #Networking #NetworkEngineer #EnterpriseNetworking #LearningInPublic
+

@@ -1,0 +1,218 @@
+🔥 LAB 24 — OSPF ↔ EIGRP Redistribution
+🎯 Objective
+
+Connect an OSPF network and an EIGRP network through a redistribution router.
+
+Learn how routes are exchanged between different routing protocols.
+
+📌 Topology
+LAN A                           LAN B
+
+192.168.1.0/24             192.168.4.0/24
+      |                           |
+      R1 -------- R2 -------- R3
+    OSPF       REDIST       EIGRP
+Skills Covered
+
+✅ OSPF Redistribution
+
+✅ EIGRP Redistribution
+
+✅ Metric Translation
+
+✅ Route Exchange
+
+✅ Enterprise Migrations
+
+✅ Troubleshooting Route Leaks
+
+IP Addressing
+Device	Interface	IP
+R1	G0/0	192.168.1.1/24
+R1	G0/1	10.1.12.1/30
+R2	G0/0	10.1.12.2/30
+R2	G0/1	10.1.23.1/30
+R3	G0/0	10.1.23.2/30
+R3	G0/1	192.168.4.1/24
+Protocol Design
+R1 = OSPF Domain
+
+R2 = Redistribution Router
+
+R3 = EIGRP Domain
+🔷 R1 Configuration (OSPF)
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shut
+
+interface g0/1
+ ip address 10.1.12.1 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.1.12.0 0.0.0.3 area 0
+
+end
+wr
+🔷 R3 Configuration (EIGRP)
+enable
+conf t
+
+hostname R3
+
+interface g0/0
+ ip address 10.1.23.2 255.255.255.252
+ no shut
+
+interface g0/1
+ ip address 192.168.4.1 255.255.255.0
+ no shut
+
+router eigrp 100
+ no auto-summary
+
+ network 10.1.23.0 0.0.0.3
+ network 192.168.4.0 0.0.0.255
+
+end
+wr
+🔷 R2 Configuration (Redistribution Router)
+enable
+conf t
+
+hostname R2
+
+interface g0/0
+ ip address 10.1.12.2 255.255.255.252
+ no shut
+
+interface g0/1
+ ip address 10.1.23.1 255.255.255.252
+ no shut
+
+!
+! OSPF
+!
+
+router ospf 1
+ router-id 2.2.2.2
+
+ network 10.1.12.0 0.0.0.3 area 0
+
+ redistribute eigrp 100 subnets
+
+!
+! EIGRP
+!
+
+router eigrp 100
+ no auto-summary
+
+ network 10.1.23.0 0.0.0.3
+
+ default-metric 10000 100 255 1 1500
+
+ redistribute ospf 1
+
+end
+wr
+Why Default Metric is Required
+
+EIGRP needs:
+
+Bandwidth
+Delay
+Reliability
+Load
+MTU
+
+Without a metric:
+
+redistribute ospf 1
+
+will fail.
+
+That's why:
+
+default-metric 10000 100 255 1 1500
+
+is configured.
+
+Verification
+Check OSPF Neighbor
+show ip ospf neighbor
+Check EIGRP Neighbor
+show ip eigrp neighbors
+Check Routes on R1
+show ip route
+
+Expected:
+
+O E2 192.168.4.0/24
+Check Routes on R3
+show ip route
+
+Expected:
+
+D EX 192.168.1.0/24
+Route Meaning
+On OSPF Side
+O E2
+
+Meaning:
+
+OSPF External Type 2
+
+Route came from EIGRP.
+
+On EIGRP Side
+D EX
+
+Meaning:
+
+EIGRP External Route
+
+Route came from OSPF.
+
+Ping Test
+
+From R1
+
+ping 192.168.4.1
+
+From R3
+
+ping 192.168.1.1
+Troubleshooting
+Missing EIGRP Metric
+
+Symptom:
+
+show ip route
+
+No OSPF routes appear in EIGRP.
+
+Fix:
+
+default-metric 10000 100 255 1 1500
+Missing Subnets Keyword
+
+Wrong:
+
+redistribute eigrp 100
+
+Correct:
+
+redistribute eigrp 100 subnets
+Neighbor Failure
+show ip ospf neighbor
+
+show ip eigrp neighbors

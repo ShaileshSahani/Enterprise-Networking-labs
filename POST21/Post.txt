@@ -1,0 +1,110 @@
+🔧 Lab 21/50 — Multi-Area OSPF with Virtual Link (Broken Backbone Fix)
+
+Built a multi-area Open Shortest Path First (OSPF) topology and fixed a non-contiguous Area 0 issue using Virtual Link between ABRs.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+Configure multi-area OSPF with intentional backbone break and restore connectivity using Virtual Link
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Topology:
+PC1
+|
+R1 —— R2 —— R3 —— R4
+A0 A1 A2
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Area Design (Intentional Issue):
+R1–R2 → Area 0
+R2–R3 → Area 1
+R3–R4 → Area 2
+
+⚠️ Problem: Area 2 not directly connected to Area 0
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+IP Addressing:
+R1–R2 → 10.1.12.0/30
+R2–R3 → 10.1.23.0/30
+R3–R4 → 10.1.34.0/30
+LAN1 → 192.168.1.0/24
+LAN2 → 192.168.4.0/24
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+• Enabled multi-area OSPF on all routers
+• Configured ABRs (R2, R3)
+• Assigned area-based network statements
+• Configured Virtual Link between R2 ↔ R3
+• Extended Area 0 logically through Area 1
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Virtual Link Configuration:
+R2:
+area 1 virtual-link 3.3.3.3
+
+R3:
+area 1 virtual-link 2.2.2.2
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Management/Interface Status:
+• All serial links up/up
+• OSPF neighbors formed between ABRs
+• LSDB synchronized across areas
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+✔ show ip ospf virtual-links
+✔ show ip ospf neighbor
+✔ show ip route
+
+Expected:
+• Virtual link = UP
+• All routers in FULL state
+• Inter-area routes (O IA) visible
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Troubleshooting Practiced:
+• Missing backbone connectivity
+• Incorrect router-id mismatch
+• Virtual link adjacency failure
+• Area mismatch on interfaces
+• OSPF neighbor stuck in INIT/EXSTART
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+Virtual Links are used to repair broken Area 0 designs, but should only be temporary solutions.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+Used in enterprise networks during mergers, redesigns, or legacy OSPF migrations where backbone continuity is broken.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the repository:
+• Full topology
+• OSPF multi-area configs
+• Virtual link setup
+• Verification outputs
+• Troubleshooting cases
+
+📂 GitHub link: https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST21
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+Fixing broken backbones.
+Building enterprise routing logic.
+All public.
+
+#CCNA #CCNP #OSPF #Networking #Cisco #NetworkEngineer #Routing #Homelab #LearningInPublic

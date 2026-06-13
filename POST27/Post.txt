@@ -1,0 +1,72 @@
+🔧 Lab 27/50 — ASA Firewall Basics
+
+Built a foundational ASA firewall lab today focused on understanding ASA interfaces, security levels, and basic connectivity.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Learn how a Cisco ASA firewall sits between networks, configure interfaces, assign security levels, and verify connectivity between inside and outside networks.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured ASA inside and outside interfaces
+• Assigned nameif for interface zones
+• Set security levels (Inside = 100, Outside = 0)
+• Enabled interfaces with IP addressing
+• Verified basic connectivity with ping testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ Interface status: show interface ip brief
+
+✔️ Security level verification: show running-config interface
+
+✔️ Ping tests from inside host to outside network
+
+✔️ Confirmed ASA separates trusted (inside) and untrusted (outside) networks
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+ASA interfaces and security levels form the foundation of firewall behavior. Higher security levels are trusted, lower levels are untrusted. This lab establishes the baseline understanding before implementing NAT, ACLs, and DMZs.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Every enterprise network uses firewalls to segment and protect networks. Understanding interface zones and security levels is critical before implementing more advanced ASA features.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• ASA interface configuration
+
+• Security level assignment
+
+• Verification commands
+
+• Basic connectivity testing
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST27
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building firewall foundations.
+Learning enterprise security principles.
+All public.
+
+#CCNA #CCNP #ASA #Firewall #Cisco #Networking #NetworkSecurity #NetworkEngineer #Homelab #LearningInPublic
+

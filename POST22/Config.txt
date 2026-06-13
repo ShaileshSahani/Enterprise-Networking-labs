@@ -1,0 +1,139 @@
+🔥 LAB 22 — OSPF Route Summarization (ABR Summarization)
+🎯 Objective
+
+Implement OSPF route summarization at the ABR to reduce routing table size and optimize convergence.
+
+📌 Topology
+LAN1 (10.1.1.0/24) ---- R1 ---- R2 ---- LAN2 (10.1.2.0/24)
+                             |
+                        LAN3 (10.1.3.0/24)
+🧠 Concept
+
+We will summarize:
+
+10.1.1.0/24
+10.1.2.0/24
+10.1.3.0/24
+
+➡️ Into:
+
+10.1.0.0/16
+
+This is done on the ABR (R2).
+
+📍 Area Design
+Device	Area
+R1	Area 0
+R2	ABR (Area 0 & 1)
+LAN1	Area 0
+LAN2/LAN3	Area 1
+🧱 IP Addressing
+Device	Interface	IP
+R1	G0/0	10.1.1.1/24
+R2	G0/0	10.1.1.2/24
+R2	G0/1	10.1.2.1/24
+R2	G0/2	10.1.3.1/24
+⚙️ CONFIGURATION
+🔷 R1 Configuration
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 10.1.1.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.1.1.0 0.0.0.255 area 0
+
+end
+write memory
+🔷 R2 Configuration (ABR + Summarization)
+enable
+conf t
+
+hostname R2
+
+interface g0/0
+ ip address 10.1.1.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 10.1.2.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 10.1.3.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+
+ network 10.1.1.0 0.0.0.255 area 0
+ network 10.1.2.0 0.0.0.255 area 1
+ network 10.1.3.0 0.0.0.255 area 1
+
+! 🔥 OSPF ABR SUMMARIZATION
+area 1 range 10.1.0.0 255.255.0.0
+
+end
+write memory
+📊 Verification Commands
+🔍 Check OSPF Neighbors
+show ip ospf neighbor
+
+Expected:
+
+R1 ↔ R2 FULL adjacency
+📌 Check Routing Table (IMPORTANT)
+show ip route ospf
+Before Summarization:
+
+You would see:
+
+O 10.1.2.0/24
+O 10.1.3.0/24
+After Summarization:
+O IA 10.1.0.0/16
+
+✔️ This confirms summarization is working.
+
+🧠 Check OSPF Database
+show ip ospf database
+🧪 TESTING
+Ping Test
+
+From R1:
+
+ping 10.1.2.1
+ping 10.1.3.1
+
+Expected:
+✔ Success
+
+🔥 TROUBLESHOOTING
+❌ Issue 1: No Summarization
+
+Check:
+
+show run | section ospf
+
+✔ Missing:
+
+area 1 range 10.1.0.0 255.255.0.0
+❌ Issue 2: Wrong Area Placement
+show ip ospf interface brief
+
+Fix area mismatch.
+
+❌ Issue 3: No Neighbor
+show ip ospf neighbor
+
+Check:
+
+Subnet mismatch
+Interface shutdown
+
+

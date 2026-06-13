@@ -1,0 +1,84 @@
+🔧 Lab 26/50 — Basic ACL Firewall (Allow HTTP, Block Telnet)
+
+Built a basic perimeter security lab today using Extended ACLs to control traffic entering the network.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure an Extended ACL to permit HTTP traffic while blocking Telnet traffic and verify traffic filtering at the network edge.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured Extended ACL on the edge router
+
+• Permitted HTTP (TCP/80) traffic
+
+• Blocked Telnet (TCP/23) traffic
+
+• Applied ACL inbound on the WAN-facing interface
+
+• Implemented source and destination-based filtering
+
+• Verified ACL processing and rule order
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ ACL entry validation
+
+✔️ Interface ACL verification
+
+✔️ HTTP traffic testing
+
+✔️ Telnet traffic blocking
+
+✔️ ACL hit counter inspection
+
+✔️ End-to-end connectivity testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Extended ACLs provide granular traffic control by filtering based on source IP, destination IP, protocol type, and port numbers. ACL rule order is critical since processing occurs from top to bottom.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+ACLs are one of the most commonly used security controls on enterprise edge routers and firewalls, helping protect internal networks from unauthorized access while allowing approved services.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete router configurations
+
+• Extended ACL implementation
+
+• Verification commands
+
+• Security testing
+
+• Troubleshooting scenarios
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST26
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building secure networks.
+Learning traffic filtering.
+All public.
+
+#CCNA #CCNP #ACL #Cisco #Networking #NetworkSecurity #CyberSecurity #NetworkEngineer #Homelab #LearningInPublic
+

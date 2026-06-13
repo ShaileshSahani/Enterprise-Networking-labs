@@ -1,0 +1,208 @@
+🔥 LAB 25 — HSRP Campus Gateway Redundancy
+🎯 Objective
+
+Configure HSRP so that hosts use a virtual default gateway.
+
+If the Active router fails, the Standby router automatically takes over.
+
+📌 Topology
+                SW1
+              /     \
+            R1       R2
+
+             HSRP
+      VIP 192.168.1.254
+
+               |
+              PC1
+       192.168.1.10/24
+Skills Covered
+
+✅ HSRP
+
+✅ Active / Standby Election
+
+✅ Virtual IP
+
+✅ Gateway Redundancy
+
+✅ Enterprise Campus Design
+
+✅ Failover Testing
+
+IP Addressing
+Device	Interface	IP Address
+R1	G0/0	192.168.1.1/24
+R2	G0/0	192.168.1.2/24
+HSRP VIP	Virtual	192.168.1.254
+PC1	NIC	192.168.1.10/24
+How HSRP Works
+PC Gateway
+     |
+192.168.1.254
+     |
+     ▼
+
+ ACTIVE (R1)
+
+ STANDBY (R2)
+
+Users never know whether R1 or R2 is forwarding traffic.
+
+They always use:
+
+192.168.1.254
+🔷 R1 Configuration (ACTIVE)
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 192.168.1.1 255.255.255.0
+
+ standby version 2
+
+ standby 1 ip 192.168.1.254
+
+ standby 1 priority 110
+
+ standby 1 preempt
+
+ no shutdown
+
+end
+wr
+🔷 R2 Configuration (STANDBY)
+enable
+conf t
+
+hostname R2
+
+interface g0/0
+ ip address 192.168.1.2 255.255.255.0
+
+ standby version 2
+
+ standby 1 ip 192.168.1.254
+
+ standby 1 priority 100
+
+ standby 1 preempt
+
+ no shutdown
+
+end
+wr
+PC Configuration
+IP Address: 192.168.1.10
+
+Subnet Mask: 255.255.255.0
+
+Default Gateway: 192.168.1.254
+Verification
+Check HSRP State
+show standby brief
+
+Expected:
+
+R1
+State Active
+R2
+State Standby
+Detailed HSRP Info
+show standby
+
+Verify:
+
+Virtual IP
+
+Priority
+
+Active Router
+
+Standby Router
+Failover Test
+Step 1
+
+Verify R1 is Active
+
+show standby brief
+Step 2
+
+Shutdown R1 Interface
+
+conf t
+
+interface g0/0
+ shutdown
+Step 3
+
+Check R2
+
+show standby brief
+
+Expected:
+
+State Active
+
+R2 becomes Active automatically.
+
+Step 4
+
+Bring R1 Back
+
+interface g0/0
+ no shutdown
+
+Because of:
+
+standby 1 preempt
+
+R1 takes back Active role.
+
+Verification During Failover
+
+Continuous ping:
+
+ping 192.168.1.254
+
+or
+
+ping 192.168.1.1
+
+You should see only 1–2 packet drops.
+
+Troubleshooting
+HSRP Not Forming
+
+Check:
+
+show standby brief
+
+Verify:
+
+Same HSRP group number
+Same VIP
+Same subnet
+Wrong Active Router
+
+Check priorities:
+
+show standby
+
+Higher priority wins.
+
+Preemption Not Working
+
+Verify:
+
+standby 1 preempt
+
+Without preempt:
+
+Once R2 becomes Active
+
+it stays Active
+
+Even when R1 returns.

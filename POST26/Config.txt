@@ -1,0 +1,159 @@
+🛡️ LAB 26 — Basic ACL Firewall (Allow HTTP, Block Telnet)
+🎯 Objective
+
+Create a simple firewall using an Extended ACL.
+
+Allow:
+
+✅ HTTP (TCP/80)
+
+Block:
+
+❌ Telnet (TCP/23)
+
+📌 Topology
+          INTERNET
+              |
+        200.1.1.1/30
+              |
+            EDGE
+        200.1.1.2/30
+              |
+        192.168.1.1/24
+              |
+             SW1
+              |
+            PC1
+       192.168.1.10/24
+Skills Covered
+
+✅ Extended ACL
+
+✅ Traffic Filtering
+
+✅ Source/Destination Matching
+
+✅ Port-Based Security
+
+✅ Edge Router Security
+
+IP Addressing
+Device	Interface	IP
+Internet Router	G0/0	200.1.1.1/30
+EDGE	G0/0	200.1.1.2/30
+EDGE	G0/1	192.168.1.1/24
+PC1	NIC	192.168.1.10/24
+🔷 Internet Router Configuration
+enable
+conf t
+
+hostname INTERNET
+
+interface g0/0
+ ip address 200.1.1.1 255.255.255.252
+ no shut
+
+ip route 192.168.1.0 255.255.255.0 200.1.1.2
+
+end
+wr
+🔷 EDGE Router Configuration
+enable
+conf t
+
+hostname EDGE
+
+interface g0/0
+ ip address 200.1.1.2 255.255.255.252
+ no shut
+
+interface g0/1
+ ip address 192.168.1.1 255.255.255.0
+ no shut
+
+!
+! Extended ACL
+!
+
+access-list 100 permit tcp any 192.168.1.0 0.0.0.255 eq 80
+
+access-list 100 deny tcp any 192.168.1.0 0.0.0.255 eq 23
+
+access-list 100 permit ip any any
+
+interface g0/0
+ ip access-group 100 in
+
+end
+wr
+PC Configuration
+IP Address: 192.168.1.10
+
+Subnet Mask: 255.255.255.0
+
+Default Gateway: 192.168.1.1
+Verification
+Check ACL
+show access-lists
+
+Expected:
+
+Extended IP access list 100
+
+permit tcp any 192.168.1.0 eq 80
+
+deny tcp any 192.168.1.0 eq 23
+
+permit ip any any
+Check Interface ACL
+show ip interface g0/0
+
+Expected:
+
+Inbound access list is 100
+Testing
+HTTP Allowed
+Internet → PC1 HTTP
+
+Result:
+
+✅ Allowed
+
+Telnet Blocked
+Internet → PC1 Telnet
+
+Result:
+
+❌ Denied
+
+Troubleshooting
+ACL Not Working
+
+Check:
+
+show access-lists
+
+Verify hit counters increase.
+
+ACL Applied Wrong Direction
+
+Check:
+
+show run interface g0/0
+
+Must show:
+
+ip access-group 100 in
+Wrong ACL Order
+
+ACLs are processed:
+
+Top → Bottom
+
+If:
+
+permit ip any any
+
+comes first,
+
+everything gets allowed.

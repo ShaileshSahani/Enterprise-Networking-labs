@@ -1,0 +1,102 @@
+🛡️ LAB 27 — ASA Firewall Basics
+🎯 Objective
+
+Learn:
+
+✅ ASA Interfaces
+
+✅ Security Levels
+
+✅ Basic Connectivity
+
+✅ Ping Testing
+
+No NAT.
+
+No DMZ.
+
+No ACLs.
+
+Just understand how an ASA sits between networks.
+
+📌 Topology
+      PC1
+192.168.1.10
+         |
+         |
+     INSIDE
+      ASA
+     OUTSIDE
+         |
+         |
+     INTERNET-PC
+   200.1.1.10
+IP Addressing
+Device	Interface	IP
+ASA Inside	E0/1	192.168.1.1/24
+ASA Outside	E0/0	200.1.1.1/24
+PC1	NIC	192.168.1.10
+Internet PC	NIC	200.1.1.10
+ASA Configuration
+enable
+
+configure terminal
+
+interface ethernet0/0
+ nameif outside
+ security-level 0
+ ip address 200.1.1.1 255.255.255.0
+ no shutdown
+
+interface ethernet0/1
+ nameif inside
+ security-level 100
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+end
+write memory
+PC1
+IP Address: 192.168.1.10
+Mask: 255.255.255.0
+Gateway: 192.168.1.1
+Internet PC
+IP Address: 200.1.1.10
+Mask: 255.255.255.0
+Gateway: 200.1.1.1
+Verification
+Interface Status
+show interface ip brief
+Check Security Levels
+show running-config interface ethernet0/0
+
+show running-config interface ethernet0/1
+First Firewall Concepts
+Security Levels
+Inside = 100
+
+Outside = 0
+
+Think:
+
+Trusted Network
+        ↓
+Inside (100)
+
+Untrusted Network
+        ↓
+Outside (0)
+What You Learn
+nameif
+nameif inside
+
+Creates a zone called Inside.
+
+security-level
+security-level 100
+
+Higher number = more trusted.
+
+ASA Interfaces
+Outside
+Inside

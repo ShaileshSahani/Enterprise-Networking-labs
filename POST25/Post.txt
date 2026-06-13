@@ -1,0 +1,74 @@
+🔧 Lab 25/50 — HSRP Campus Gateway Redundancy
+
+Built a high-availability campus gateway lab today using HSRP to provide seamless default gateway failover for hosts.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure HSRP on two routers to provide a virtual default gateway. Verify Active/Standby election and automatic failover during link or device failures.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured HSRP version 2 on both routers
+• Assigned a shared virtual IP (VIP) for hosts
+• Set router priorities and enabled preemption
+• Verified Active and Standby roles
+• Tested failover and restoration behavior
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ Check HSRP states: show standby brief
+
+✔️ Detailed HSRP info: show standby
+
+✔️ Failover testing by shutting down Active router
+
+✔️ Continuous ping to virtual IP to confirm minimal packet loss
+
+✔️ Restoration testing with preemption enabled
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+HSRP allows hosts to always reach a consistent default gateway. Understanding priority, preemption, and VIP configuration ensures minimal downtime during router failures.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+HSRP is widely deployed in enterprise campus networks to provide gateway redundancy and maintain uninterrupted user connectivity during router or interface outages.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete router configurations
+
+• HSRP setup and verification
+
+• Failover test procedures
+
+• Troubleshooting scenarios
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST25
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building resilient campus networks.
+Learning enterprise redundancy principles.
+All public.
+
+#CCNA #CCNP #HSRP #Cisco #Networking #NetworkEngineer #GatewayRedundancy #EnterpriseNetworking #Homelab #LearningInPublic
+

@@ -1,0 +1,75 @@
+🔧 Lab 23/50 — OSPF Multi-Area Enterprise Expansion
+
+Built a multi-area OSPF lab today focused on scalable enterprise routing using Area 0 as the backbone between multiple OSPF areas.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure and verify multi-area OSPF communication across Area 1, Area 0, and Area 2 while understanding ABR functionality and inter-area route propagation.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured OSPF on four routers
+• Implemented a multi-area OSPF design
+• Established Area 0 as the OSPF backbone
+• Configured ABR functionality on R2 and R3
+• Advertised LAN networks into their respective areas
+• Enabled inter-area route exchange through Area 0
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ OSPF neighbor adjacency validation
+
+✔️ ABR route propagation verification
+
+✔️ Inter-area route learning confirmation
+
+✔️ Routing table inspection
+
+✔️ End-to-end connectivity testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Area 0 serves as the backbone of an OSPF network. All non-backbone areas must connect to Area 0 either directly or through a virtual link for proper route exchange.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Multi-area OSPF is widely used in enterprise environments to improve scalability, reduce LSDB size, and optimize routing performance across large networks.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete router configurations
+
+• Multi-area OSPF implementation
+
+• Verification commands
+
+• Connectivity testing
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST23
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building scalable routing domains.
+Learning enterprise design principles.
+All public.
+
+#CCNA #CCNP #OSPF #Cisco #Routing #Networking #NetworkEngineer #EnterpriseNetworking #Homelab #LearningInPublic
+
