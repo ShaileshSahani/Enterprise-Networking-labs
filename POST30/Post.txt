@@ -1,0 +1,86 @@
+🔧 Lab 30/50 — Enterprise WAN Through ISP Core
+
+Built a service-provider style WAN lab today simulating Internet connectivity through an ISP backbone using OSPF and route redistribution.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Build an enterprise-to-Internet topology where a home network reaches a remote web server through an ISP core running OSPF.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured a Home Router using static routing
+
+• Built a multi-router ISP backbone using OSPF Area 0
+
+• Configured ISP Edge as the redistribution point
+
+• Redistributed static routes into OSPF
+
+• Advertised a web server network from the Google Edge router
+
+• Established end-to-end routing across the WAN
+
+• Verified external route propagation through the ISP core
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ OSPF neighbor adjacency validation
+
+✔️ Routing table inspection across ISP routers
+
+✔️ OSPF External (E2) route verification
+
+✔️ End-to-end connectivity testing
+
+✔️ Traceroute path analysis
+
+✔️ Reachability from enterprise LAN to web server
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+This lab demonstrated how enterprise networks connect to service provider networks using static routes at the edge and dynamic routing within the ISP core. It also reinforced how OSPF external routes are created through route redistribution.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+This design closely resembles how organizations connect to ISPs. Enterprise edge devices often use static routing while provider backbones rely on dynamic routing protocols to transport traffic across large-scale networks.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete device configurations
+
+• OSPF backbone deployment
+
+• Static-to-OSPF redistribution
+
+• Verification commands
+
+• Traceroute analysis
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST30
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building enterprise WANs.
+Learning provider-grade routing.
+All public.
+
+#CCNA #CCNP #OSPF #WAN #Routing #Cisco #Networking #NetworkEngineer #EnterpriseNetworking #LearningInPublic
+

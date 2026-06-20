@@ -1,0 +1,190 @@
+🔧 LAB 31/50 — GRE Tunnel Between Branches
+
+Since your LAB 30 was an Enterprise WAN through an ISP Cloud, the next logical step is to build a GRE overlay across that provider network.
+
+Objective
+
+Build a GRE Tunnel between HQ and Branch.
+
+Underlay = ISP Network
+Overlay = GRE Tunnel
+Run OSPF over GRE
+Exchange LAN Routes
+Verify end-to-end reachability
+📌 Topology
+HQ LAN                           Branch LAN
+192.168.1.0/24                   192.168.2.0/24
+
+PC1                              PC2
+ |                                |
+SW                               SW
+ |                                |
+R1 ---------------- ISP ---------------- R2
+
+WAN IP                     WAN IP
+10.1.1.1                   20.1.1.1
+
+        ===== GRE Tunnel =====
+
+Tunnel0
+172.16.12.1/30
+172.16.12.2/30
+IP Addressing
+Device	Interface	IP
+R1	G0/0	192.168.1.1/24
+R1	G0/1	10.1.1.1/30
+R2	G0/1	20.1.1.1/30
+R2	G0/0	192.168.2.1/24
+Tunnel0 R1	Tunnel	172.16.12.1/30
+Tunnel0 R2	Tunnel	172.16.12.2/30
+ISP Router
+
+Simple routing only.
+
+ISP Configuration
+enable
+conf t
+
+hostname ISP
+
+interface g0/0
+ ip address 10.1.1.2 255.255.255.252
+ no shutdown
+
+interface g0/1
+ ip address 20.1.1.2 255.255.255.252
+ no shutdown
+
+ip route 192.168.1.0 255.255.255.0 10.1.1.1
+ip route 192.168.2.0 255.255.255.0 20.1.1.1
+
+end
+wr
+HQ Router (R1)
+enable
+conf t
+
+hostname R1
+
+interface g0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 10.1.1.1 255.255.255.252
+ no shutdown
+
+ip route 0.0.0.0 0.0.0.0 10.1.1.2
+GRE Tunnel
+interface Tunnel0
+
+ ip address 172.16.12.1 255.255.255.252
+
+ tunnel source g0/1
+
+ tunnel destination 20.1.1.1
+
+ no shutdown
+OSPF over GRE
+router ospf 1
+
+ router-id 1.1.1.1
+
+ network 192.168.1.0 0.0.0.255 area 0
+
+ network 172.16.12.0 0.0.0.3 area 0
+end
+wr
+Branch Router (R2)
+enable
+conf t
+
+hostname R2
+
+interface g0/0
+ ip address 192.168.2.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 20.1.1.1 255.255.255.252
+ no shutdown
+
+ip route 0.0.0.0 0.0.0.0 20.1.1.2
+GRE Tunnel
+interface Tunnel0
+
+ ip address 172.16.12.2 255.255.255.252
+
+ tunnel source g0/1
+
+ tunnel destination 10.1.1.1
+
+ no shutdown
+OSPF
+router ospf 1
+
+ router-id 2.2.2.2
+
+ network 192.168.2.0 0.0.0.255 area 0
+
+ network 172.16.12.0 0.0.0.3 area 0
+
+end
+wr
+PC Configuration
+PC1
+IP Address : 192.168.1.10
+Mask       : 255.255.255.0
+Gateway    : 192.168.1.1
+PC2
+IP Address : 192.168.2.10
+Mask       : 255.255.255.0
+Gateway    : 192.168.2.1
+Verification
+Tunnel Status
+show ip interface brief
+
+Expected:
+
+Tunnel0 up up
+Tunnel Details
+show interface tunnel0
+OSPF Neighbors
+show ip ospf neighbor
+
+Expected:
+
+FULL
+
+through the GRE tunnel.
+
+Routing Table
+
+On R1:
+
+show ip route
+
+Expected:
+
+O 192.168.2.0/24
+
+On R2:
+
+O 192.168.1.0/24
+End-to-End Test
+
+From PC1:
+
+ping 192.168.2.10
+
+Expected:
+
+Success rate 100%
+Troubleshooting Commands
+show interface tunnel0
+
+show ip route
+
+show ip ospf neighbor
+
+show ip protocols

@@ -1,0 +1,90 @@
+🔧 Lab 32/50 — GRE over IPsec VPN
+
+Built a secure site-to-site VPN lab today by combining GRE and IPsec to create an encrypted tunnel between HQ and Branch locations.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure GRE over IPsec to securely transport routing information and user traffic between remote sites across an untrusted network.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Built a GRE tunnel between HQ and Branch
+
+• Configured OSPF over the GRE tunnel
+
+• Implemented IPsec Phase 1 (ISAKMP)
+
+• Configured IPsec Phase 2 (Transform Sets)
+
+• Established pre-shared key authentication
+
+• Created crypto maps and interesting traffic ACLs
+
+• Applied IPsec protection to WAN interfaces
+
+• Verified encrypted GRE traffic across the Internet
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ GRE tunnel status validation
+
+✔️ OSPF neighbor adjacency over GRE
+
+✔️ Dynamic route exchange verification
+
+✔️ ISAKMP security association validation
+
+✔️ IPsec security association verification
+
+✔️ Encrypted packet counter inspection
+
+✔️ End-to-end connectivity testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+GRE provides routing protocol support and multicast transport, while IPsec provides encryption, authentication, and confidentiality. Combining both technologies creates a secure and scalable site-to-site VPN solution.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+GRE over IPsec is widely used in enterprise WAN environments to securely connect branch offices across public networks while supporting dynamic routing protocols such as OSPF, EIGRP, and BGP.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• GRE tunnel configuration
+
+• OSPF implementation
+
+• IPsec VPN configuration
+
+• Verification commands
+
+• Troubleshooting procedures
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST32
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building secure WANs.
+Learning enterprise VPN technologies.
+All public.
+
+#CCNA #CCNP #GRE #IPsec #VPN #OSPF #Cisco #Networking #NetworkEngineer #LearningInPublic
+

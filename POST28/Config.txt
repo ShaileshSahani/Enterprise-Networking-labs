@@ -1,0 +1,190 @@
+🛡️ LAB 28 — ASA Access Control Lists
+
+Now that you've learned:
+
+✅ ASA Interfaces
+
+✅ Inside vs Outside
+
+✅ Security Levels
+
+It's time to control traffic with firewall rules.
+
+🎯 Objective
+
+Allow:
+
+✅ ICMP (Ping)
+
+✅ HTTP
+
+Block:
+
+❌ Telnet
+
+using ASA ACLs.
+
+📌 Topology
+      PC1
+192.168.1.10
+         |
+         |
+     INSIDE
+      ASA
+     OUTSIDE
+         |
+         |
+     INTERNET-PC
+    200.1.1.10
+
+Same topology as Lab 27.
+
+Only firewall rules change.
+
+Skills Covered
+
+✅ ASA ACLs
+
+✅ Access Groups
+
+✅ Traffic Filtering
+
+✅ Stateful Firewall Basics
+
+✅ Security Policies
+
+IP Addressing
+Device	IP
+PC1	192.168.1.10
+ASA Inside	192.168.1.1
+ASA Outside	200.1.1.1
+Internet PC	200.1.1.10
+🔷 ASA Base Configuration
+enable
+
+conf t
+
+interface ethernet0/0
+ nameif outside
+ security-level 0
+ ip address 200.1.1.1 255.255.255.0
+ no shut
+
+interface ethernet0/1
+ nameif inside
+ security-level 100
+ ip address 192.168.1.1 255.255.255.0
+ no shut
+Create ACL
+
+Allow Ping:
+
+access-list OUTSIDE-IN extended permit icmp any any
+
+Allow HTTP:
+
+access-list OUTSIDE-IN extended permit tcp any any eq 80
+
+Block Telnet:
+
+access-list OUTSIDE-IN extended deny tcp any any eq 23
+
+Apply ACL:
+
+access-group OUTSIDE-IN in interface outside
+
+Save:
+
+write memory
+Verification
+
+Check ACL:
+
+show access-list
+
+Check Access Group:
+
+show access-group
+
+Check Interface:
+
+show running-config
+Testing
+Ping
+Internet-PC
+     ↓
+Ping
+     ↓
+PC1
+
+Result:
+
+✅ Allowed
+
+HTTP
+Internet-PC
+     ↓
+HTTP
+     ↓
+PC1
+
+Result:
+
+✅ Allowed
+
+Telnet
+Internet-PC
+     ↓
+Telnet
+     ↓
+PC1
+
+Result:
+
+❌ Blocked
+
+Firewall Concepts
+ACL
+
+A list of permit and deny statements.
+
+Access Group
+
+Binds ACL to an interface.
+
+access-group OUTSIDE-IN in interface outside
+
+Without this command:
+
+ACL exists
+
+BUT
+
+does nothing
+Stateful Firewall
+
+ASA remembers connections.
+
+Inside → Outside
+
+Return traffic automatically allowed
+
+This is one reason firewalls are smarter than routers with ACLs.
+
+Troubleshooting
+ACL Not Working
+show access-list
+
+Verify hit counters increase.
+
+ACL Not Applied
+show access-group
+Rule Order Wrong
+
+ASA processes:
+
+Top
+ ↓
+Bottom
+
+First match wins.

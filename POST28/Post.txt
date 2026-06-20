@@ -1,0 +1,86 @@
+🔧 Lab 28/50 — ASA Access Control Lists (First Real Firewall Rules)
+
+Built my first ASA firewall policy lab today focused on controlling traffic with Access Control Lists (ACLs).
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure ASA ACLs to permit ICMP and HTTP traffic while blocking Telnet traffic from the outside network.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Configured ASA inside and outside interfaces
+
+• Created an Extended ACL
+
+• Allowed ICMP (Ping) traffic
+
+• Allowed HTTP (TCP/80) traffic
+
+• Blocked Telnet (TCP/23) traffic
+
+• Applied ACL to the outside interface using access-groups
+
+• Verified firewall policy enforcement
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ ACL verification using show access-list
+
+✔️ Access-group verification
+
+✔️ Firewall policy validation
+
+✔️ ICMP connectivity testing
+
+✔️ HTTP access testing
+
+✔️ Telnet blocking confirmation
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Creating an ACL is only half the job. The ACL must be applied to an interface using an access-group before it affects traffic. I also learned how ASA processes ACLs top-down and stops at the first match.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Firewall ACLs are a fundamental security control used to permit approved services while blocking unauthorized access. Nearly every enterprise firewall policy is built around this concept.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• ASA ACL configuration
+
+• Access-group implementation
+
+• Verification commands
+
+• Traffic testing
+
+• Troubleshooting scenarios
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST28
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building firewall skills.
+Learning real security controls.
+All public.
+
+#CCNA #CCNP #CiscoASA #Firewall #ACL #NetworkSecurity #Cisco #Networking #NetworkEngineer #LearningInPublic
+

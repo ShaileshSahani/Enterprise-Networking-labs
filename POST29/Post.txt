@@ -1,0 +1,75 @@
+🔧 Lab 29/50 — OSPF + BGP Redistribution Network
+
+Built an enterprise-grade topology today with 68+ endpoints, OSPF routing, and BGP redistribution connecting internal network to external ISP.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure OSPF across all Layer 3 devices with BGP as redistribution protocol to enable end-to-end connectivity between internal endpoints and external networks.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Deployed 68+ PCs with unique IPs (192.168.1.2-70/24) and default gateway
+
+• Configured 100+ access switches with management IPs (192.168.1.100-227/24)
+
+• Core Router (R1) running OSPF with router-id 1.1.1.1 and default-information-originate
+
+• BGP Router (R2) with router-id 2.2.2.2 for OSPF ↔ BGP redistribution (AS 65000)
+
+• OSPF area 0 with full network advertisements
+
+• Serial link (200.1.1.0/30) between BGP Router and ISP (AS 65001)
+
+• Mutual redistribution with route-maps for controlled route exchange
+
+• Captured running-config from each device for complete documentation
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ "show ip ospf neighbor" — OSPF adjacency established
+
+✔️ "show ip bgp summary" — BGP peering confirmed
+
+✔️ "show ip route" & "show ip bgp" — Route redistribution validated
+
+✔️ "show running-config" — Configuration captured from all devices
+
+✔️ End-to-end connectivity tested across all endpoints
+
+✔️ Switch management IP reachability verified
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+Large-scale networks need proper IP planning, hierarchical routing, and controlled redistribution. OSPF handles internal routing with fast convergence while BGP manages external connectivity. Mutual redistribution requires route-maps and filters to prevent routing loops.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+Mirrors enterprise campus networks where OSPF runs internally, BGP connects to ISPs/partners, and redistribution enables seamless hybrid connectivity across hundreds of endpoints.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in Repository:
+
+• Full topology with IP scheme
+• Running-configs: R1 (OSPF), R2 (BGP), Switch templates
+• OSPF area design & BGP redistribution
+• Verification commands with outputs
+• Troubleshooting procedures
+
+📂 https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST29
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days. Learning in Public.
+
+#CCNA #CCNP #OSPF #BGP #Redistribution #Cisco #Networking #NetworkEngineer #EnterpriseNetworking #LearningInPublic

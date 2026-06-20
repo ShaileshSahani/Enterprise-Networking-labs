@@ -1,0 +1,86 @@
+🔧 Lab 31/50 — GRE Tunnel Between Branches
+
+Built a GRE overlay lab today connecting two branch locations across a simulated ISP network and running OSPF through the tunnel.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Objective:
+
+Configure a GRE tunnel between HQ and Branch routers, run OSPF over the tunnel, and establish end-to-end connectivity between remote LANs.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Core Configuration Performed:
+
+• Built an ISP underlay network
+
+• Configured GRE Tunnel interfaces on both routers
+
+• Established GRE encapsulation across the WAN
+
+• Configured tunnel source and destination addresses
+
+• Enabled OSPF over the GRE tunnel
+
+• Advertised LAN networks through OSPF
+
+• Verified dynamic route exchange across the overlay
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Verification Performed:
+
+✔️ Tunnel interface status verification
+
+✔️ GRE tunnel validation
+
+✔️ OSPF neighbor adjacency over the tunnel
+
+✔️ Routing table inspection
+
+✔️ Dynamic route learning confirmation
+
+✔️ End-to-end connectivity testing
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Key Learning:
+
+GRE creates a virtual point-to-point overlay network across an existing IP infrastructure. Running OSPF through the tunnel allows remote networks to exchange routes as if they were directly connected.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Real-World Relevance:
+
+GRE tunnels are widely used to connect branch offices, transport routing protocols across service provider networks, and serve as the foundation for technologies such as DMVPN and IPsec VPN deployments.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+Included in the Repository:
+
+• Full topology
+
+• Complete router configurations
+
+• GRE tunnel deployment
+
+• OSPF over GRE implementation
+
+• Verification commands
+
+• Troubleshooting procedures
+
+📂 GitHub link
+
+https://github.com/ShaileshSahani/Enterprise-Networking-labs/tree/main/POST31
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+50 Labs. 90 Days.
+
+Building network overlays.
+Learning enterprise WAN technologies.
+All public.
+
+#CCNA #CCNP #GRE #OSPF #WAN #Cisco #Networking #NetworkEngineer #EnterpriseNetworking #LearningInPublic
+
